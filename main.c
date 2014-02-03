@@ -1,20 +1,19 @@
-
 /*                                                                              
  ****************************************************************   
  * @file    main.c
  * @date    2013-12-12
  * @author  JackABK
  *          github: https://github.com/JackABK 
- *          e-mail: gn771018@hotmail.com
+ *          e-mail: abkabkabkyes@gmail.com
  *
- * @brief   This Project is easy PID control with encoder,
+ * @brief   This project will complete easy PI control through encoder,
  *          it apply in the motor controller and caclulator the RPM. 
- *          The encoder signal is A leader to B 90 angle , 
- *          so that like as picture  is CW.
- *                  __      __
+ *          The encoder signal is A leader to B 90 angle, 
+ *          so that like as following graphic, it's CW.
+ *              __    __
  *         A __|  |__|  |__
- *                    __       __ 
- *         B   __ |  |__|  |__
+ *                __    __ 
+ *         B   __|  |__|  |__
  *
  *
  ***************************************************************
@@ -141,7 +140,7 @@ int main(void) {
                 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
                 	init_USART3(9600);
                 	init_LED();
-                   init_car();               
+           		init_car();               
 
                     /*create the task. */         
                 	ret = xTaskCreate(tesing_task, "FPU", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
