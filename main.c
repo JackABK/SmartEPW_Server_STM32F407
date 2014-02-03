@@ -35,62 +35,62 @@
 #define USE_FILELIB_STDIO_COMPAT_NAMES
 
 /*============================================================================*
-  ** Prototype    : tesing_task
-  ** Description  : test the relative mode and print to stdout , it's a task thread.
-  **                          it's tesing the distance info by now.
-  ** Input          : void* p  
-  ** Output       : None
-  ** Return Value : 
-  *============================================================================*/
+ ** Prototype    : tesing_task
+ ** Description  : test the relative mode and print to stdout , it's a task thread.
+ **                          it's tesing the distance info by now.
+ ** Input          : void* p  
+ ** Output       : None
+ ** Return Value : 
+ *============================================================================*/
 void tesing_task(void* p) { 
-   printf("Start testing the distance measure .\n");
-   
-   typedef struct DISTANCE_INFO{
-                    int counter;
-                    int avg;
-   }DISTANCE_INFO_STRU;
+		printf("Start testing the distance measure .\n");
 
-   DISTANCE_INFO_STRU distance_info_CH1;
-  
-  for (;;) {
-            /*check out the system is not crash */
-          GPIO_ToggleBits(GPIOD,GPIO_Pin_12);
-            vTaskDelay(30);
+		typedef struct DISTANCE_INFO{
+				int counter;
+				int avg;
+		}DISTANCE_INFO_STRU;
 
-            if (distance_info_CH1.counter< 3   )  {
-                distance_info_CH1.avg += Get_CH1Distance();
-                distance_info_CH1.counter++;
-            }
-            else{
-                distance_info_CH1.avg  =  round( (float)distance_info_CH1.avg / 3.0f);
-                //printf("%ld %ld %ld %ld\n\r",distance_avg_1,Get_CH2Distance() ,Get_CH3Distance(),Get_CH4Distance() );
-                //printf("%ld\n\r",distance_avg_1);
+		DISTANCE_INFO_STRU distance_info_CH1;
 
-                distance_info_CH1.counter=0;
-                distance_info_CH1.avg = 0;
-            }
-           //printf("fuck !!.\n");
-  }
-  vTaskDelete(NULL);
+		for (;;) {
+				/*check out the system is not crash */
+				GPIO_ToggleBits(GPIOD,GPIO_Pin_12);
+				vTaskDelay(30);
+
+				if (distance_info_CH1.counter< 3   )  {
+						distance_info_CH1.avg += Get_CH1Distance();
+						distance_info_CH1.counter++;
+				}
+				else{
+						distance_info_CH1.avg  =  round( (float)distance_info_CH1.avg / 3.0f);
+						//printf("%ld %ld %ld %ld\n\r",distance_avg_1,Get_CH2Distance() ,Get_CH3Distance(),Get_CH4Distance() );
+						//printf("%ld\n\r",distance_avg_1);
+
+						distance_info_CH1.counter=0;
+						distance_info_CH1.avg = 0;
+				}
+				//printf("fuck !!.\n");
+		}
+		vTaskDelete(NULL);
 }
 
 
 
 void init_LED(void){
-	GPIO_InitTypeDef GPIO_InitStruct;
-	/* Enable GPIO C clock. */
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC|RCC_AHB1Periph_GPIOD, ENABLE);
-	// Setup Blue & Green LED on STM32-Discovery Board to use PWM.
-	GPIO_InitStruct.GPIO_Pin =  GPIO_Pin_12 | GPIO_Pin_13| GPIO_Pin_14| GPIO_Pin_15; //PD12->LED3 PD13->LED4 PD14->LED5 PDa5->LED6
-	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;            // Alt Function - Push Pull
-	GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
-	GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_Init( GPIOD, &GPIO_InitStruct ); 
-	GPIO_WriteBit(GPIOD,GPIO_Pin_12,Bit_RESET);
-	GPIO_WriteBit(GPIOD,GPIO_Pin_13,Bit_RESET);
-	GPIO_WriteBit(GPIOD,GPIO_Pin_14,Bit_RESET);
-	GPIO_WriteBit(GPIOD,GPIO_Pin_15,Bit_RESET);
+		GPIO_InitTypeDef GPIO_InitStruct;
+		/* Enable GPIO C clock. */
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC|RCC_AHB1Periph_GPIOD, ENABLE);
+		// Setup Blue & Green LED on STM32-Discovery Board to use PWM.
+		GPIO_InitStruct.GPIO_Pin =  GPIO_Pin_12 | GPIO_Pin_13| GPIO_Pin_14| GPIO_Pin_15; //PD12->LED3 PD13->LED4 PD14->LED5 PDa5->LED6
+		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;            // Alt Function - Push Pull
+		GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
+		GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
+		GPIO_Init( GPIOD, &GPIO_InitStruct ); 
+		GPIO_WriteBit(GPIOD,GPIO_Pin_12,Bit_RESET);
+		GPIO_WriteBit(GPIOD,GPIO_Pin_13,Bit_RESET);
+		GPIO_WriteBit(GPIOD,GPIO_Pin_14,Bit_RESET);
+		GPIO_WriteBit(GPIOD,GPIO_Pin_15,Bit_RESET);
 }
 
 
@@ -108,8 +108,8 @@ void vApplicationTickHook(void) {
    to query the size of free heap space that remains (although it does not
    provide information on how the remaining heap might be fragmented). */
 void vApplicationMallocFailedHook(void) {
-	taskDISABLE_INTERRUPTS();
-	for(;;);
+		taskDISABLE_INTERRUPTS();
+		for(;;);
 }
 
 /* vApplicationIdleHook() will only be called if configUSE_IDLE_HOOK is set
@@ -125,36 +125,36 @@ void vApplicationIdleHook(void) {
 }
 
 void vApplicationStackOverflowHook(xTaskHandle pxTask, signed char *pcTaskName) {
-  (void) pcTaskName;
-  (void) pxTask;
-  /* Run time stack overflow checking is performed if
-     configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2.  This hook
-     function is called if a stack overflow is detected. */
-  taskDISABLE_INTERRUPTS();
-  for(;;);
+		(void) pcTaskName;
+		(void) pxTask;
+		/* Run time stack overflow checking is performed if
+		   configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2.  This hook
+		   function is called if a stack overflow is detected. */
+		taskDISABLE_INTERRUPTS();
+		for(;;);
 }
 
 int main(void) {
-    
-                	uint8_t ret = pdFALSE;
-                	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
-                	init_USART3(9600);
-                	init_LED();
-           		init_car();               
 
-                    /*create the task. */         
-                	ret = xTaskCreate(tesing_task, "FPU", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
-                         ret &= xTaskCreate(shell_task, "remote task", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
-                	if (ret == pdTRUE) {
-                		printf("System Started!\n");
-                		vTaskStartScheduler();  // should never return
-                   	} else {
-                		printf("System Error!\n");
-                		// --TODO blink some LEDs to indicates fatal system error
-                	}
+		uint8_t ret = pdFALSE;
+		NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
+		init_USART3(9600);
+		init_LED();
+		init_car();               
 
-	for (;;);
-    
+		/*create the task. */         
+		ret = xTaskCreate(tesing_task, "FPU", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+		ret &= xTaskCreate(shell_task, "remote task", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+		if (ret == pdTRUE) {
+				printf("System Started!\n");
+				vTaskStartScheduler();  // should never return
+		} else {
+				printf("System Error!\n");
+				// --TODO blink some LEDs to indicates fatal system error
+		}
+
+		for (;;);
+
 }
 
 

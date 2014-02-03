@@ -3,19 +3,19 @@
   Copyright (C), 2001-2011, DCN Co., Ltd.
 
  ******************************************************************************
-  File Name     : string.h
-  Version       : Initial Draft
-  Author        : JackABK
-  Created       : 2014/1/31
-  Last Modified :
-  Description   : string.c header file
-  Function List :
-  History       :
-  1.Date        : 2014/1/31
-    Author      : JackABK
-    Modification: Created file
+ File Name     : string.h
+Version       : Initial Draft
+Author        : JackABK
+Created       : 2014/1/31
+Last Modified :
+Description   : string.c header file
+Function List :
+History       :
+1.Date        : 2014/1/31
+Author      : JackABK
+Modification: Created file
 
-******************************************************************************/
+ ******************************************************************************/
 
 #ifndef __STRING_H__
 #define __STRING_H__
