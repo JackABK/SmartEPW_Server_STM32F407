@@ -1,4 +1,3 @@
-
 SmartEPW
 =========
 
@@ -23,3 +22,8 @@ Resolution
 * The way to trasfer control and sensors signal is through the wireless bluetooth, but we prefer to using wifi by      future work. 
 
 
+
+STM32F4-Discovery-FreeRTOS
+============================
+
+* This project is based on A demo of FreeRTOS running on a STM32F4 Discovery                                           board([STM32F4-FreeRTOS](https://github.com/wangyeee/STM32F4-FreeRTOS)).
