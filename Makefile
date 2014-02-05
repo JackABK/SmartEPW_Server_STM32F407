@@ -38,7 +38,7 @@ vpath %.c $(CURDIR)/Libraries/STM32F4xx_StdPeriph_Driver/src \
 	  $(FREERTOS)/portable/MemMang $(FREERTOS)/portable/GCC/ARM_CM4F \
 	  $(CURDIR)/sdio \
 	  $(CURDIR)/fat \
-	  $(CURDIR)/SmartPWC_lib
+	  $(CURDIR)/Smart_EPW_lib
 
 
 vpath %.s $(STARTUP)
@@ -67,7 +67,7 @@ SRC+=fat_write.c
 SRC+=example.c
 
 
-#SmartPWC_lib
+#SmartEPW_lib
 SRC+=ultrasound.c
 SRC+=car_behavior.c
 SRC+=car_command.c
