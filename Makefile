@@ -25,7 +25,7 @@ INCLUDE+=-I$(CURDIR)/Libraries/STM32F4xx_StdPeriph_Driver/inc
 INCLUDE+=-I$(CURDIR)/config
 INCLUDE+=-I$(CURDIR)/sdio
 INCLUDE+=-I$(CURDIR)/fat
-INCLUDE+=-I$(CURDIR)/SmartPWC_lib
+INCLUDE+=-I$(CURDIR)/Smart_EPW_lib
 
 
 BUILD_DIR = $(CURDIR)/build
@@ -74,6 +74,7 @@ SRC+=car_command.c
 SRC+=uart.c
 SRC+=clib.c
 SRC+=shell.c
+SRC+=PID.c
 
 # FreeRTOS Source Files
 SRC+=port.c
