@@ -27,7 +27,6 @@
 #include "stm32f4xx_exti.h"
 #include "example.h"
 #include "car_behavior.h"
-
 #include "uart.h"
 #include  "clib.h"
 #include  "shell.h"
@@ -42,21 +41,36 @@
  ** Output       : None
  ** Return Value : 
  *============================================================================*/
-void tesing_task(void* p) { 
-		printf("Start testing the distance measure .\n");
-
-		typedef struct DISTANCE_INFO{
+ typedef struct DISTANCE_INFO{
 				int counter;
 				int avg;
 		}DISTANCE_INFO_STRU;
-
-		DISTANCE_INFO_STRU distance_info_CH1;
-
+DISTANCE_INFO_STRU distance_info_CH1;
+void tesing_task(void* p) { 
+		printf("Start testing the distance measure .\n");
 		for (;;) {
 				/*check out the system is not crash */
-				GPIO_ToggleBits(GPIOD,GPIO_Pin_12);
-				vTaskDelay(30);
+				//GPIO_ToggleBits(GPIOD,GPIO_Pin_12);
 
+
+
+                /*
+                forward_cmd(100 , 100);
+				vTaskDelay(1000);
+                
+                stop_cmd(100 , 100);
+				vTaskDelay(1000);
+               
+                backward_cmd(100 , 100);
+                    vTaskDelay(1000);
+
+                left_cmd(100 , 100);
+                vTaskDelay(1000);
+
+                right_cmd(100 , 100);
+                vTaskDelay(1000);
+                */
+                
 				if (distance_info_CH1.counter< 3   )  {
 						distance_info_CH1.avg += Get_CH1Distance();
 						distance_info_CH1.counter++;
@@ -69,7 +83,6 @@ void tesing_task(void* p) {
 						distance_info_CH1.counter=0;
 						distance_info_CH1.avg = 0;
 				}
-				//printf("fuck !!.\n");
 		}
 		vTaskDelete(NULL);
 }
@@ -143,8 +156,8 @@ int main(void) {
 		init_car();               
 
 		/*create the task. */         
-		ret = xTaskCreate(tesing_task, "FPU", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
-		ret &= xTaskCreate(shell_task, "remote task", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+		ret = xTaskCreate(tesing_task, "FPU", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
+		ret &= xTaskCreate(shell_task, "remote task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
 		if (ret == pdTRUE) {
 				printf("System Started!\n");
 				vTaskStartScheduler();  // should never return
