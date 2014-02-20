@@ -5,8 +5,10 @@ TOOLCHAIN_PATH:=$(TOOLCHARN_ROOT)/bin
 TOOLCHAIN_PREFIX:=arm-none-eabi
 
 # Optimization level, can be [0, 1, 2, 3, s].
+
 OPTLVL:=0
 DBG:=-g
+L298N_MODE:= -DL298N_MODE
 
 FREERTOS:=$(CURDIR)/FreeRTOS
 STARTUP:=$(CURDIR)/hardware
@@ -75,6 +77,7 @@ SRC+=uart.c
 SRC+=clib.c
 SRC+=shell.c
 SRC+=PID.c
+SRC+=unit_tests.c
 
 # FreeRTOS Source Files
 SRC+=port.c
@@ -109,7 +112,7 @@ CDEFS+=-D__FPU_USED=1
 CDEFS+=-DARM_MATH_CM4
 
 MCUFLAGS=-mcpu=cortex-m4 -mthumb -mfloat-abi=hard
-COMMONFLAGS=-O$(OPTLVL) $(DBG) -Wall
+COMMONFLAGS=-O$(OPTLVL) $(DBG) $(L298N_MODE) -Wall
 CFLAGS=$(COMMONFLAGS) $(MCUFLAGS) $(INCLUDE) $(CDEFS)
 LDLIBS=$(TOOLCHARN_ROOT)/arm-none-eabi/lib/armv7e-m/fpu/libc_s.a $(TOOLCHARN_ROOT)/arm-none-eabi/lib/armv7e-m/fpu/libm.a
 LDFLAGS=$(COMMONFLAGS) -fno-exceptions -ffunction-sections -fdata-sections -nostartfiles -Wl,--gc-sections,-T$(LINKER_SCRIPT) -v
