@@ -3,6 +3,8 @@
 #include "task.h"
 #include  "clib.h"
 #include  "car_command.h"
+#include  "car_behavior.h"
+
 
 
 typedef void cmd_func(uint32_t SpeedValue_left , uint32_t SpeedValue_right);
@@ -26,29 +28,78 @@ static cmd_list  motor_cmds_table[] = {
 		DECLARE_COMMAND(right,"Motor Right!!")
 };
 
-
 /* =========================Control Function============================ */
-inline void forward_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right){
-		TIM_SetCompare2(TIM4, SpeedValue_left);    
-		TIM_SetCompare4(TIM4, SpeedValue_right);    
+/* for the L298N, In1 = 1 means CW and In1=0 means CCW by our settings,
+ * In2 is used by PWM signal, the In1 = In2 is stop motion when Enable_A is pull high.  
+ * 
+ */
+inline void forward_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right){  
+#ifdef L298N_MODE
+        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_CWCCW_PIN,Bit_SET);  /* 1 */       
+		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_CWCCW_PIN,Bit_SET);  /* 1 */ 
+        TIM_SetCompare2(TIM4, SpeedValue_left);    
+		TIM_SetCompare4(TIM4, SpeedValue_right);
+#else
+		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_CWCCW_PIN,Bit_RESET);  /* 0 */       
+		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_CWCCW_PIN,Bit_RESET);  /* 0 */ 
+        TIM_SetCompare2(TIM4, SpeedValue_left);    
+		TIM_SetCompare4(TIM4, SpeedValue_right);
+#endif
 }
 inline void stop_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right){
+#ifdef L298N_MODE
+        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_CWCCW_PIN,Bit_RESET);  /* 0 */       
+        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_CWCCW_PIN,Bit_RESET);  /* 0 */ 
+        TIM_SetCompare2(TIM4, SpeedValue_left);    
+        TIM_SetCompare4(TIM4, SpeedValue_right);
+#else
 		/*stop will be always zero.**/
+        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_CWCCW_PIN,Bit_RESET);  /* 0 */       
+		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_CWCCW_PIN,Bit_RESET);  /* 0 */ 
 		TIM_SetCompare2(TIM4, 0);    
-		TIM_SetCompare4(TIM4, 0);  
+		TIM_SetCompare4(TIM4, 0);
+#endif
 }
 inline void backward_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right){
-		TIM_SetCompare2(TIM4, SpeedValue_left);    
+#ifdef L298N_MODE
+        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_CWCCW_PIN,Bit_RESET);  /* 0 */       
+        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_CWCCW_PIN,Bit_RESET);  /* 0 */ 
+        TIM_SetCompare2(TIM4, SpeedValue_left);    
+        TIM_SetCompare4(TIM4, SpeedValue_right);
+#else
+        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_CWCCW_PIN,Bit_SET);  /* 1 */       
+		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_CWCCW_PIN,Bit_SET); /* 1 */ 
+        TIM_SetCompare2(TIM4, SpeedValue_left);    
 		TIM_SetCompare4(TIM4, SpeedValue_right);
-
+#endif
 }
 inline void left_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right){
-		/*forward and turn left big angle*/
-
+#ifdef L298N_MODE
+        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_CWCCW_PIN,Bit_RESET);  /* 0 */       
+        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_CWCCW_PIN,Bit_SET);  /* 1 */ 
+        TIM_SetCompare2(TIM4, SpeedValue_left);    
+        TIM_SetCompare4(TIM4, SpeedValue_right);
+#else
+        /*different to two motor, right of the CW and left of the CCW*/        
+        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_CWCCW_PIN,Bit_SET);   /* 1 */      
+		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_CWCCW_PIN,Bit_RESET); /* 0 */ 
+        TIM_SetCompare2(TIM4, SpeedValue_left);
+		TIM_SetCompare4(TIM4, SpeedValue_right);
+#endif   
 }
 inline void right_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right){
-		/*forward and turn right big angle*/
-
+#ifdef L298N_MODE
+        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_CWCCW_PIN,Bit_SET);  /* 1 */       
+        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_CWCCW_PIN,Bit_RESET);  /* 0 */ 
+        TIM_SetCompare2(TIM4, SpeedValue_left);    
+        TIM_SetCompare4(TIM4, SpeedValue_right);
+#else
+		/*different to two motor, left of the CW and right of the CCW*/
+        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_CWCCW_PIN,Bit_RESET);  /* 0 */      
+		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_CWCCW_PIN,Bit_SET);   /* 1 */
+        TIM_SetCompare2(TIM4, SpeedValue_left);
+		TIM_SetCompare4(TIM4, SpeedValue_right);
+#endif
 }
 /* ======================End of the Control Function===================== */
 

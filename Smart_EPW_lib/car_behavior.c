@@ -8,51 +8,46 @@
 #include "uart.h"
 #include "clib.h"
 #include "car_command.h"
+#include "PID.h"
+
 
 
 #define CAR_POLLING_PERIOD  20//unit : ms
 
 
-/*=================Re-define the all by pins=========================*/
-/****Motor****/            
-#define MOTOR_PORT                                                GPIOD
-#define MOTOR_LEFT_PWM_PIN                                        GPIO_Pin_13
-#define MOTOR_RIGHT_PWM_PIN                                       GPIO_Pin_15
 
-/****Encoder****/
-#define ENCODER_PORT                                              GPIOA
-#define ENCODER_LEFT_PHASE_A_PIN                                  GPIO_Pin_0      /*the inturrupt is maping to EXTI0*/
-#define ENCODER_RIGHT_PHASE_A_PIN                                 GPIO_Pin_1      /*the inturrupt is maping to EXTI1*/
-#define ENCODER_LEFT_PHASE_B_PIN                                  GPIO_Pin_2
-#define ENCODER_RIGHT_PHASE_B_PIN                                 GPIO_Pin_3
-/*===============end of define  the all by pins========================*/
 
 
 typedef enum{
 		CAR_STATE_IDLE,
 		CAR_STATE_REST,                               
 		CAR_STATE_MOVE_FORWARD,
-		CAR_STATE_MOVE_BACK    
+		CAR_STATE_MOVE_BACK,
+		CAR_STATE_MOVE_LEFT,
+		CAR_STATE_MOVE_RIGHT
 }car_state_t;
 
 static car_state_t car_state;
 
 
+/*create the pid struct for use*/
+pid_struct PID_Motor_L;
+pid_struct PID_Motor_R;
+
 
 
 /*encoder_left  variable.  setting*/
-static float rpm_left_motor = 0;
+static float rpm_left_motor = 0.0f;
 static int encoder_left_counter;
 /*encoder_right  variable  setting*/
-static float rpm_right_motor = 0;
+static float rpm_right_motor = 0.0f;
 static int encoder_right_counter;
 
-static float rpm_error ;
-
+static float set_rpm=300.0f;
 
 /*pwm regulate of two motor */
-static int SpeedValue_left ; /*default speedvalue*/
-static int SpeedValue_right ;
+static int SpeedValue_left; /*default speedvalue*/
+static int SpeedValue_right;
 static char flag;
 
 /*Timer handle declare*/
@@ -78,11 +73,11 @@ void init_motor(void){
 		GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
 		GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
 		GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
-		GPIO_Init( MOTOR_PORT, &GPIO_InitStruct );   
+		GPIO_Init( MOTOR_PWM_PORT, &GPIO_InitStruct );   
 
 		/*====================TIM Setting=============================*/
-		GPIO_PinAFConfig(MOTOR_PORT, GPIO_PinSource13, GPIO_AF_TIM4);
-		GPIO_PinAFConfig(MOTOR_PORT, GPIO_PinSource15, GPIO_AF_TIM4);
+		GPIO_PinAFConfig(MOTOR_PWM_PORT, GPIO_PinSource13, GPIO_AF_TIM4);
+		GPIO_PinAFConfig(MOTOR_PWM_PORT, GPIO_PinSource15, GPIO_AF_TIM4);
 
 		/* TIM4 clock enable */
 		RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
@@ -110,7 +105,7 @@ void init_motor(void){
 		TIM_OCInitTypeDef TIM_OCInitStructure;
 		TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
 		TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-		TIM_OCInitStructure.TIM_Pulse = 0;
+		TIM_OCInitStructure.TIM_Pulse = 0; /*max pwm value is TIM's period, in our case, it's  255*/
 		TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
 		/* PWM1 Mode configuration: Channel2   (MOTOR_LEFT_PWM_PIN)*/
 		TIM_OC2Init(TIM4, &TIM_OCInitStructure);
@@ -120,6 +115,21 @@ void init_motor(void){
 		TIM_OC4PreloadConfig(TIM4, TIM_OCPreload_Enable);
 
 		TIM_Cmd(TIM4, ENABLE);
+}
+
+
+void init_motor_CWCCW(void){
+		GPIO_InitTypeDef GPIO_InitStruct;
+		/* Enable GPIO D clock. */
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
+		GPIO_InitStruct.GPIO_Pin =  MOTOR_LEFT_CWCCW_PIN | MOTOR_RIGHT_CWCCW_PIN;
+		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;            // Alt Function - Push Pull
+		GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
+		GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
+		GPIO_Init( MOTOR_CWCCW_PORT, &GPIO_InitStruct ); 
+		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_CWCCW_PIN,Bit_RESET);
+		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_CWCCW_PIN,Bit_RESET);	
 }
 
 
@@ -197,14 +207,20 @@ void init_External_Interrupt(void){
 
 
 void init_car(){
+        
 		init_motor();
+        init_motor_CWCCW();
+        init_encoder();
 		init_External_Interrupt();
 		ultra_sound_init();
 
 		carTimers=xTimerCreate("Car_State_Polling",	 ( CAR_POLLING_PERIOD), pdTRUE, ( void * ) 1,  Car_State_Polling );
 		xTimerStart( carTimers, 0 );
 
-		PD_Timers=xTimerCreate("PI_Algorithm_Polling",( 1000), pdTRUE, ( void * ) 1,  PI_Algorithm_Polling	);
+
+        //InitPID(&PID_Motor_L , 2.0f,0.1f,0.0f);
+        InitPID(&PID_Motor_R , 1.0f,1.5f,0.0f);
+		PD_Timers=xTimerCreate("PID_Algorithm_Polling",( 20), pdTRUE, ( void * ) 1,  PID_Algorithm_Polling);
 		xTimerStart( PD_Timers, 0 );
 }
 
@@ -212,12 +228,13 @@ void init_car(){
 
 /*============================================================================*
  ** Prototype    : Car_State_Polling
- ** Description  : record the car's state of all behavior and keep to polling
+ ** Description  : record the car's state of all behavior and keep to polling,
+                   this is used for auto-avoidance polling mechanism
  ** Input        : None
  ** Output       : None
  ** Return Value : 
  *============================================================================*/
-#define THRESHOLD_DISTANCE 100 /*unit : cm*/
+#define THRESHOLD_DISTANCE 50 /*unit : cm*/
 /**
  *  the unit is  (CAR_POLLING_PERIOD ms) , so depend on the CAR_POLLING_PERIOD.
  *  for example the CAR_POLLING_PERIOD=20, CAR_MOVING_PERIOD=10,
@@ -227,56 +244,104 @@ void init_car(){
 #define CAR_REST_PERIOD  5
 void Car_State_Polling(){
 		static int count;
+        unsigned int distance[4];
+        distance[0]=Get_CH1Distance();
+        distance[1]=Get_CH2Distance();
+        distance[2]=Get_CH3Distance();
+        distance[3]=Get_CH4Distance();
+        
 		if(car_state==CAR_STATE_IDLE){
 				count=0;
 		}
 		else if(car_state==CAR_STATE_REST){
 				proc_cmd("stop" , 0 , 0);
+
+                /*
 				count++;
 				if(count>=CAR_REST_PERIOD){
 						count=0;
 						car_state=CAR_STATE_IDLE;
-				}
+				}*/
 		}
 		else if(car_state==CAR_STATE_MOVE_FORWARD){
+
+#if 0       
+                if(distance[0]==0 || distance[1]==0){
+                    car_state=CAR_STATE_IDLE;
+                    return;
+                }
+                state|=((distance[0]>THRESHOLD_DISTANCE)?0x01:0x00);
+                state|=((distance[1]>THRESHOLD_DISTANCE)?0x02:0x00);
+                switch(state){
+                    case 0x00:
+                        //deadend
+                        
+                        break;
+                    case 0x01:
+                        //need to turn left
+                        //proc_cmd("left" , SpeedValue_left , SpeedValue_right);
+
+                        /*send warning message*/
+                        //printf("Left %d %d" , distance[0] , distance[1]);
+                        break;
+                    case 0x02:
+                        //need to turn right
+                        //proc_cmd("right" , SpeedValue_left , SpeedValue_right);
+
+                        /*send warning message*/
+                        //printf("Right %d %d" , distance[0] , distance[1]);
+                        break;
+                    case 0x03:
+                        //nothing ahead
+                        break;
+                }
+#endif       
+                /*
 				count++;
 				if(count>=CAR_MOVING_PERIOD){
 						count=0;
 						car_state=CAR_STATE_REST;
-				}
+				}*/
 
 		}	
 		else if(car_state==CAR_STATE_MOVE_BACK){
+                /*
 				count++;
 				if(count>=CAR_MOVING_PERIOD){
 						count=0;
 						car_state=CAR_STATE_REST;
-				}
+				}*/
+		}
+        else if(car_state==CAR_STATE_MOVE_LEFT){
 
+		}   
+        else if(car_state==CAR_STATE_MOVE_RIGHT){
+               
 		}    
-
 }
 
 /*============================================================================*/
 /*============================================================================*
  ** function : PerformCommand
- ** brief : parse the command from the uart siganl
- ** param : acpt_cmd
+ ** brief : parse the command from the uart siganl,
+            note, the acept pwm value max is 255, even if 256, it's duty cycle is equal to 255.
+ ** param : acpt_cmd , acpt_pwm_value
  ** retval :  None
  **============================================================================*/
 /*============================================================================*/
 void PerformCommand(unsigned char acpt_cmd , unsigned char acpt_pwm_value)
 {
 		if(acpt_cmd == 'f'){
+				car_state = CAR_STATE_MOVE_FORWARD;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
 				SpeedValue_left = (int)acpt_pwm_value; 
 				SpeedValue_right=SpeedValue_left;
 
 				proc_cmd("forward" , SpeedValue_left , SpeedValue_right);
-				car_state = CAR_STATE_MOVE_FORWARD;
 		}
 		else if(acpt_cmd == 's'){
+				car_state = CAR_STATE_IDLE;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
 
@@ -284,25 +349,38 @@ void PerformCommand(unsigned char acpt_cmd , unsigned char acpt_pwm_value)
 				SpeedValue_left = 0;
 				SpeedValue_right = 0;
 				proc_cmd("stop" , SpeedValue_left , SpeedValue_right);
-				car_state = CAR_STATE_IDLE;
 
 		}
 		else if(acpt_cmd == 'b'){
+                car_state = CAR_STATE_MOVE_BACK;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
 				SpeedValue_left = (int)acpt_pwm_value ; 
 				SpeedValue_right=SpeedValue_left;
 				proc_cmd("backward" , SpeedValue_left , SpeedValue_right);
-				car_state = CAR_STATE_MOVE_BACK;
+		}
+        else if(acpt_cmd == 'l'){
+                car_state = CAR_STATE_MOVE_LEFT;
+				encoder_left_counter=0;
+				encoder_right_counter=0;
+				SpeedValue_left = (int)acpt_pwm_value ; 
+				SpeedValue_right=SpeedValue_left;
+				proc_cmd("left" , SpeedValue_left , SpeedValue_right);
+		}
+        else if(acpt_cmd == 'r'){
+                car_state = CAR_STATE_MOVE_RIGHT;
+				encoder_left_counter=0;
+				encoder_right_counter=0;
+				SpeedValue_left = (int)acpt_pwm_value ; 
+				SpeedValue_right=SpeedValue_left;
+				proc_cmd("right" , SpeedValue_left , SpeedValue_right);
 		}
 		else{
 				/*do not anything*/
 		}
+        
+        //printf("%c %d %d \n" ,  acpt_cmd , SpeedValue_left , SpeedValue_right);
 }
-
-
-
-
 
 
 /*============================================================================*/
@@ -313,39 +391,39 @@ void PerformCommand(unsigned char acpt_cmd , unsigned char acpt_pwm_value)
  ** retval : None
  **============================================================================*/
 /*============================================================================*/
-void PI_Algorithm_Polling(void)
+#define OUTPUT_INFO_PERIOD 50
+void PID_Algorithm_Polling(void)
 {
 
 		detachInterrupt(EXTI_Line0); /*close external interrupt 0*/ 
 		detachInterrupt(EXTI_Line1); /*close external interrupt 1*/ 
+        float temp ;
+        static int output_info_count = 0 ;
+        /*get the two motor parameter such as RPM, Rotations..*/
+        getMotorData();
 
-		/*use the count total by  1 sec to caclulator RPM */
-		/*the encoder spec is  500 pulse/1 rev */
-		rpm_left_motor=(float)encoder_left_counter * 60 /500 / 1;
-		rpm_right_motor=(float)encoder_right_counter *  60  /500 / 1;
-		/*calculator the calibration of right motor based on left motor */
+        /*calculate Position PID of two motor*/    
+        SpeedValue_right = (int)PID_Pos_Calc(&PID_Motor_R , rpm_left_motor , rpm_right_motor);
+        //SpeedValue_right = SpeedValue_right + (int)PID_Pos_Calc(&PID_Motor_R , set_rpm , rpm_right_motor);
 
-		rpm_error =   (rpm_left_motor - rpm_right_motor) * 4 /10  ;
-		SpeedValue_right=   SpeedValue_right +   (int)rpm_error;
 
+        /*
+        if(SpeedValue_left > 255)  SpeedValue_left = 255;
+        else if(SpeedValue_left < 0)  SpeedValue_left= 0;
+        if(SpeedValue_right > 255)  SpeedValue_right = 255;
+        else if(SpeedValue_right < 0)  SpeedValue_right= 0;
+        */
+        
 		/*print the message to stdout*/
 
-		//printf(" %d\n" ,(int)(SpeedValue_right));
 		//printf("encoder_left_counter : %d\r\n" , encoder_left_counter  );
-		//printf("encoder_right_counter : %d\r\n" , encoder_right_counter  );
+    	//printf("encoder_right_counter : %d\r\n" , encoder_right_counter  );
+        //printf("right PID Control : %d\r\n" , SpeedValue_right  );
 
 		//printf("%d\r\n" ,  rpm_left_motor );
 		//printf("%d\r\n" ,  rpm_right_motor );
 
-		/*test pirntf*/
-
-		/*
-		   float myfloat = 120.0f;
-		   myfloat = myfloat * 60 /500;
-		   int myint;
-		 */
-
-		// myint =  round(myfloat)  ;
+		
 
 		//printf("%d\n\r" , (int)rpm_error);
 
@@ -361,13 +439,48 @@ void PI_Algorithm_Polling(void)
 				proc_cmd("backward" , SpeedValue_left , SpeedValue_right);
 		}
 
-		encoder_left_counter = 0;   
-		encoder_right_counter = 0;   
+		  
+
+
+        if(output_info_count >= OUTPUT_INFO_PERIOD-1 )
+        {
+            printf("-------------------EPW Info----------------------\r\n");
+            printf("SpeedValue_right pwm is : %d \r\n" , SpeedValue_right  );
+            printf("SpeedValue_left is : %d \r\n" , SpeedValue_left);
+            printf("rpm_left is : %d \r\n" , (int)rpm_left_motor);
+            printf("rpm_right is : %d \r\n" , (int)rpm_right_motor);
+            printf("encoder_left_counter is : %d \r\n" , encoder_left_counter);
+            printf("encoder_right_counter is : %d \r\n" , encoder_right_counter);
+            printf("-------------------------------------------------\r\n");
+            output_info_count = 0;
+        }
+        else{
+            output_info_count++;
+        }
+
+        encoder_left_counter = 0;   
+        encoder_right_counter = 0; 
 
 		/*restart enable the external interrupt*/
 		attachInterrupt(EXTI_Line0); 
 		attachInterrupt(EXTI_Line1);
 
+}
+
+void getMotorData(void)
+{
+    
+    /*for L298N test is used by 600 pulse/rev of the encoder.*/
+#ifdef L298N_MODE 
+    rpm_left_motor=(float)encoder_left_counter * 60.0f /600.0f / 0.02f;
+    rpm_right_motor=(float)encoder_right_counter *  60.0f  /600.0f / 0.02f;    
+#else
+    /*for SmartEPW is used by 500 pulse/rev */
+    rpm_left_motor=(float)encoder_left_counter * 60.0f /500.0f / 0.02f;
+    rpm_right_motor=(float)encoder_right_counter *  60.0f  /500.0f / 0.02f;          
+    //get the speed of the two motors in deg/sec
+    /***do someting***/ 
+#endif
 }
 
 void EXTI0_IRQHandler(){
