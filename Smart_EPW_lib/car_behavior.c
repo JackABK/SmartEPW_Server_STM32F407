@@ -13,7 +13,7 @@
 
 
 #define CAR_POLLING_PERIOD  20//unit : ms
-
+#define PID_POLLING_PERIOD  20//unit : ms
 
 
 
@@ -220,7 +220,7 @@ void init_car(){
 
         //InitPID(&PID_Motor_L , 2.0f,0.1f,0.0f);
         InitPID(&PID_Motor_R , 1.0f,1.5f,0.0f);
-		PD_Timers=xTimerCreate("PID_Algorithm_Polling",( 20), pdTRUE, ( void * ) 1,  PID_Algorithm_Polling);
+		PD_Timers=xTimerCreate("PID_Algorithm_Polling",( PID_POLLING_PERIOD), pdTRUE, ( void * ) 1,  PID_Algorithm_Polling);
 		xTimerStart( PD_Timers, 0 );
 }
 
@@ -385,13 +385,13 @@ void PerformCommand(unsigned char acpt_cmd , unsigned char acpt_pwm_value)
 
 /*============================================================================*/
 /*============================================================================*
- ** function : PI_Algorithm_Polling
+ ** function : PID_Algorithm_Polling
  ** brief : loop read the encoder signal  and caclulator the RPM , the cycle time is 20msec
  ** param : None
  ** retval : None
  **============================================================================*/
 /*============================================================================*/
-#define OUTPUT_INFO_PERIOD 50
+#define OUTPUT_INFO_PERIOD 50 /*unit : PID_POLLING_PERIOD ms*/
 void PID_Algorithm_Polling(void)
 {
 
@@ -404,31 +404,8 @@ void PID_Algorithm_Polling(void)
 
         /*calculate Position PID of two motor*/    
         SpeedValue_right = (int)PID_Pos_Calc(&PID_Motor_R , rpm_left_motor , rpm_right_motor);
-        //SpeedValue_right = SpeedValue_right + (int)PID_Pos_Calc(&PID_Motor_R , set_rpm , rpm_right_motor);
 
 
-        /*
-        if(SpeedValue_left > 255)  SpeedValue_left = 255;
-        else if(SpeedValue_left < 0)  SpeedValue_left= 0;
-        if(SpeedValue_right > 255)  SpeedValue_right = 255;
-        else if(SpeedValue_right < 0)  SpeedValue_right= 0;
-        */
-        
-		/*print the message to stdout*/
-
-		//printf("encoder_left_counter : %d\r\n" , encoder_left_counter  );
-    	//printf("encoder_right_counter : %d\r\n" , encoder_right_counter  );
-        //printf("right PID Control : %d\r\n" , SpeedValue_right  );
-
-		//printf("%d\r\n" ,  rpm_left_motor );
-		//printf("%d\r\n" ,  rpm_right_motor );
-
-		
-
-		//printf("%d\n\r" , (int)rpm_error);
-
-		//printf("rpm_left = %.2f \n ", rpm_left_motor);
-		//printf("rpm_right = %.2f \n ", rpm_right_motor);
 
 
 		/*restart motor calibration and re-count encoder count*/
@@ -440,8 +417,7 @@ void PID_Algorithm_Polling(void)
 		}
 
 		  
-
-
+		/*print the motor relative parameter to stdout*/
         if(output_info_count >= OUTPUT_INFO_PERIOD-1 )
         {
             printf("-------------------EPW Info----------------------\r\n");
