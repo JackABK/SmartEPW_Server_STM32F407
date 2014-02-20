@@ -52,7 +52,7 @@ static char flag;
 
 /*Timer handle declare*/
 xTimerHandle carTimers;
-xTimerHandle PD_Timers;
+xTimerHandle PID_Timers;
 
 
 /*============================================================================*/
@@ -220,8 +220,8 @@ void init_car(){
 
         //InitPID(&PID_Motor_L , 2.0f,0.1f,0.0f);
         InitPID(&PID_Motor_R , 1.0f,1.5f,0.0f);
-		PD_Timers=xTimerCreate("PID_Algorithm_Polling",( PID_POLLING_PERIOD), pdTRUE, ( void * ) 1,  PID_Algorithm_Polling);
-		xTimerStart( PD_Timers, 0 );
+		PID_Timers=xTimerCreate("PID_Algorithm_Polling",( PID_POLLING_PERIOD), pdTRUE, ( void * ) 1,  PID_Algorithm_Polling);
+		xTimerStart( PID_Timers, 0 );
 }
 
 
