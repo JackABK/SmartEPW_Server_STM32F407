@@ -8,7 +8,7 @@ unsigned char Receive_data ;
 
 
 /*Setting the USART MAX string lenth */
-#define MAX_STRLEN 1 // this is the maximum string length of our string in characters
+#define MAX_STRLEN 2 // this is the maximum string length of our string in characters
 volatile unsigned char received_string[MAX_STRLEN]; // this will hold the recieved string
 
 

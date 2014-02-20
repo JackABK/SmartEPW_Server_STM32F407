@@ -115,20 +115,8 @@ void USART3_IRQHandler(void){
 						received_string[cnt] = Receive_data;
 						/*Ready to parse the command */
 						if(cnt == MAX_STRLEN - 1){
-
 								Receive_String_Ready = 1;
 								cnt=0;
-
-#if 0
-								printf("0: %d\n" , received_string[0]);
-								printf("1: %d\n" , received_string[1]);
-								printf("2: %d\n" , received_string[2]);
-								printf("3: %d\n" , received_string[3]);
-								printf("4: %d\n" , received_string[4]);
-#endif
-
-								printf("4: %d\n" , received_string[0]);
-								//printf("4: %d\n" , received_string[1]);
 						}
 						else{
 								cnt++;
