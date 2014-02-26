@@ -218,8 +218,6 @@ void init_car(){
 		xTimerStart( carTimers, 0 );
 
 
-        //InitPID(&PID_Motor_L , 2.0f,0.1f,0.0f);
-        InitPID(&PID_Motor_R , 1.0f,1.5f,0.0f);
 		PID_Timers=xTimerCreate("PID_Algorithm_Polling",( PID_POLLING_PERIOD), pdTRUE, ( void * ) 1,  PID_Algorithm_Polling);
 		xTimerStart( PID_Timers, 0 );
 }
@@ -324,23 +322,25 @@ void Car_State_Polling(){
 /*============================================================================*
  ** function : PerformCommand
  ** brief : parse the command from the uart siganl,
-            note, the acept pwm value max is 255, even if 256, it's duty cycle is equal to 255.
- ** param : acpt_cmd , acpt_pwm_value
+            note, the pwm_value  max is 255, even if 256, it's duty cycle is equal to 255.
+ ** param : DIR_cmd , pwm_value , Kp , Ki , Kd
  ** retval :  None
  **============================================================================*/
 /*============================================================================*/
-void PerformCommand(unsigned char acpt_cmd , unsigned char acpt_pwm_value)
+void PerformCommand(unsigned char DIR_cmd , unsigned char pwm_value , unsigned char Kp , unsigned char Ki , unsigned char Kd)
 {
-		if(acpt_cmd == 'f'){
+        InitPID(&PID_Motor_R , (float)Kp/10.0f ,(float)Ki/10.0f,(float)Kd/10.0f);
+        
+		if(DIR_cmd == 'f'){
 				car_state = CAR_STATE_MOVE_FORWARD;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
-				SpeedValue_left = (int)acpt_pwm_value; 
+				SpeedValue_left = (int)pwm_value; 
 				SpeedValue_right=SpeedValue_left;
 
 				proc_cmd("forward" , SpeedValue_left , SpeedValue_right);
 		}
-		else if(acpt_cmd == 's'){
+		else if(DIR_cmd == 's'){
 				car_state = CAR_STATE_IDLE;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
@@ -351,27 +351,27 @@ void PerformCommand(unsigned char acpt_cmd , unsigned char acpt_pwm_value)
 				proc_cmd("stop" , SpeedValue_left , SpeedValue_right);
 
 		}
-		else if(acpt_cmd == 'b'){
+		else if(DIR_cmd == 'b'){
                 car_state = CAR_STATE_MOVE_BACK;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
-				SpeedValue_left = (int)acpt_pwm_value ; 
+				SpeedValue_left = (int)pwm_value ; 
 				SpeedValue_right=SpeedValue_left;
 				proc_cmd("backward" , SpeedValue_left , SpeedValue_right);
 		}
-        else if(acpt_cmd == 'l'){
+        else if(DIR_cmd == 'l'){
                 car_state = CAR_STATE_MOVE_LEFT;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
-				SpeedValue_left = (int)acpt_pwm_value ; 
+				SpeedValue_left = (int)pwm_value ; 
 				SpeedValue_right=SpeedValue_left;
 				proc_cmd("left" , SpeedValue_left , SpeedValue_right);
 		}
-        else if(acpt_cmd == 'r'){
+        else if(DIR_cmd == 'r'){
                 car_state = CAR_STATE_MOVE_RIGHT;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
-				SpeedValue_left = (int)acpt_pwm_value ; 
+				SpeedValue_left = (int)pwm_value ; 
 				SpeedValue_right=SpeedValue_left;
 				proc_cmd("right" , SpeedValue_left , SpeedValue_right);
 		}
@@ -420,6 +420,15 @@ void PID_Algorithm_Polling(void)
 		/*print the motor relative parameter to stdout*/
         if(output_info_count >= OUTPUT_INFO_PERIOD-1 )
         {
+            /**
+             * send command list format to Android used 
+             * Note, because transfer data's unit is byte, so I convert to char,
+             * but the java accept byte have a sign bit problem,
+             * on the java, byte is represent  -128~127
+             */
+            printf("cmd%c%c\n",  (char)round(rpm_left_motor) ,(char) round(rpm_right_motor));
+            
+
             printf("-------------------EPW Info----------------------\r\n");
             printf("SpeedValue_right pwm is : %d \r\n" , SpeedValue_right  );
             printf("SpeedValue_left is : %d \r\n" , SpeedValue_left);
@@ -427,6 +436,8 @@ void PID_Algorithm_Polling(void)
             printf("rpm_right is : %d \r\n" , (int)rpm_right_motor);
             printf("encoder_left_counter is : %d \r\n" , encoder_left_counter);
             printf("encoder_right_counter is : %d \r\n" , encoder_right_counter);
+            /*because freertos of printf cannot be used %f , so I scale 10 factor to convert int.*/
+            printf("Kp=%d Ki=%d Kd=%d\r\n" ,(int)(PID_Motor_R.Kp*10.0f) , (int)(PID_Motor_R.Ki*10.0f), (int)(PID_Motor_R.Kd*10.0f));
             printf("-------------------------------------------------\r\n");
             output_info_count = 0;
         }

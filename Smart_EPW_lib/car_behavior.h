@@ -46,7 +46,12 @@ extern void init_car();
 extern void init_encoder(void);
 extern void init_External_Interrupt(void);
 extern void init_motor(void);
-extern void PerformCommand(unsigned char acpt_cmd , unsigned char acpt_pwm_value);
+extern void PerformCommand(unsigned char DIR_cmd, 
+                           unsigned char pwm_value,
+                           unsigned char Kp,
+                           unsigned char Ki,
+                           unsigned char Kd);
+
 extern void PID_Algorithm_Polling(void);
 extern void init_motor_CWCCW(void);
 
