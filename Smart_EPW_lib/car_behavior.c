@@ -124,14 +124,19 @@ void init_motor_CWCCW(void){
 		GPIO_InitTypeDef GPIO_InitStruct;
 		/* Enable GPIO D clock. */
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
-		GPIO_InitStruct.GPIO_Pin =  MOTOR_LEFT_CWCCW_PIN | MOTOR_RIGHT_CWCCW_PIN;
+        #ifdef L298N_MODE
+        GPIO_InitStruct.GPIO_Pin =  MOTOR_LEFT_IN1_PIN| MOTOR_LEFT_IN2_PIN | MOTOR_RIGHT_IN3_PIN | MOTOR_RIGHT_IN4_PIN ;
+        #else /*Smart EPW*/
+        GPIO_InitStruct.GPIO_Pin =  MOTOR_LEFT_CWCCW_PIN | MOTOR_RIGHT_CWCCW_PIN;
+        #endif
+	
 		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;            // Alt Function - Push Pull
 		GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
 		GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
 		GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
 		GPIO_Init( MOTOR_CWCCW_PORT, &GPIO_InitStruct ); 
-		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_CWCCW_PIN,Bit_RESET);
-		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_CWCCW_PIN,Bit_RESET);	
+		//GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_CWCCW_PIN,Bit_RESET);
+		//GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_CWCCW_PIN,Bit_RESET);	
 }
 
 
@@ -432,15 +437,12 @@ void PID_Algorithm_Polling(void)
             
 
             printf("-------------------EPW Info----------------------\r\n");
-            printf("SpeedValue_right pwm is : %d \r\n" , SpeedValue_right  );
-            printf("SpeedValue_left is : %d \r\n" , SpeedValue_left);
-            printf("rpm_left is : %d \r\n" , (int)rpm_left_motor);
-            printf("rpm_right is : %d \r\n" , (int)rpm_right_motor);
-            printf("encoder_left_counter is : %d \r\n" , encoder_left_counter);
-            printf("encoder_right_counter is : %d \r\n" , encoder_right_counter);
+            printf("SpeedValue PWM-->   Left = %d   Right = %d\r\n" , SpeedValue_left,SpeedValue_right  );
+            printf("RPM-->   Left = %d   Right = %d\r\n" , (int)rpm_left_motor , (int)rpm_right_motor);
+            printf("Encoder-->   Left = %d   Right =  %d\r\n" , encoder_left_counter , encoder_right_counter);      
             /*because freertos of printf cannot be used %f , so I scale 10 factor to convert int.*/
-            printf("Kp=%d Ki=%d Kd=%d\r\n" ,(int)(PID_Motor_R.Kp*10.0f) , (int)(PID_Motor_R.Ki*10.0f), (int)(PID_Motor_R.Kd*10.0f));
-            printf("-------------------------------------------------\r\n");
+            printf("Kp = %d Ki = %d Kd = %d\r\n" ,(int)(PID_Motor_R.Kp*10.0f) , (int)(PID_Motor_R.Ki*10.0f), (int)(PID_Motor_R.Kd*10.0f));
+ 
             output_info_count = 0;
         }
         else{

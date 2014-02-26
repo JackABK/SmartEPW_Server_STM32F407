@@ -16,10 +16,19 @@
 #define MOTOR_LEFT_PWM_PIN                                        GPIO_Pin_13
 #define MOTOR_RIGHT_PWM_PIN                                       GPIO_Pin_15
 
+
+
 #define MOTOR_CWCCW_PORT                                          GPIOD
+
+#ifdef L298N_MODE
+#define MOTOR_LEFT_IN1_PIN                                        GPIO_Pin_9                                        
+#define MOTOR_LEFT_IN2_PIN                                        GPIO_Pin_10
+#define MOTOR_RIGHT_IN3_PIN                                       GPIO_Pin_11
+#define MOTOR_RIGHT_IN4_PIN                                       GPIO_Pin_12
+#else /*Smart EPW Mode*/
 #define MOTOR_LEFT_CWCCW_PIN                                      GPIO_Pin_12
 #define MOTOR_RIGHT_CWCCW_PIN                                     GPIO_Pin_14
-
+#endif
 
 /****Encoder****/
 #define ENCODER_PORT                                              GPIOA

@@ -12,9 +12,7 @@
 #define USART3_TX_PIN                     GPIO_Pin_10
 #define USART3_RX_PIN                     GPIO_Pin_11
 
-/*determine yes or no reatch the MAX_STRLEN  */
-extern uint8_t Receive_String_Ready;
-
+uint8_t Receive_String_Ready=0;
 
 
 void init_USART3(uint32_t baurate){
@@ -111,10 +109,10 @@ void USART3_IRQHandler(void){
 				 * or the if the maximum string length has been been reached 
 				 */
 
-				if( Receive_data != '\n' ){ 
+				if( Receive_data != '\n'){ 
 						received_string[cnt] = Receive_data;
 						/*Ready to parse the command */
-						if(cnt == MAX_STRLEN - 1){
+						if(cnt == CMD_LIST_LENGTH- 1){
 								Receive_String_Ready = 1;
 								cnt=0;
 						}

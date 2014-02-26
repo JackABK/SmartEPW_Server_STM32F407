@@ -10,25 +10,9 @@
 #include "FreeRTOS.h"
 #include "stm32f4xx_usart.h"
 #include "uart.h"
-
-/*determine yes or no reatch the MAX_STRLEN  */
-uint8_t Receive_String_Ready  =  0;
-
-/*arrange the receive of command to structure */
-#pragma pack(1)               
-static struct   receive_cmd_list{
-		unsigned char motion_command ;
-		unsigned char  pwm_value ;
-};
-#pragma pack()     
+#include "shell.h"
 
 
-/* USART receive command and pwm value*/
-/*should be to define to main.h or uart.h*/
-enum { 
-		RECEIVE_CMD,
-		RECEIVE_PWM_VALUE
-};
 
 /*============================================================================*
  ** Prototype    : shell_task
@@ -39,12 +23,12 @@ enum {
  *============================================================================*/
 void shell_task(void *p)
 {
-		int i ;
-		struct  receive_cmd_list   receive_cmd_type;
+		int i , j;
+		struct  receive_cmd_list * receive_cmd_type;
 
 		while (1) {
 				if(Receive_String_Ready ){
-						GPIO_ToggleBits(GPIOD,GPIO_Pin_14);
+						//GPIO_ToggleBits(GPIOD,GPIO_Pin_14);
 
 #if 0
 						receive_cmd_type.motion_command = received_string[0];
@@ -54,17 +38,30 @@ void shell_task(void *p)
 														   (received_string[4]) ;
 #endif
 
-						/* put the receive command to command structure */
-						receive_cmd_type.motion_command = received_string[RECEIVE_CMD];
-						receive_cmd_type.pwm_value = received_string[RECEIVE_PWM_VALUE];
+                        /*
+                        for ( j = 0; j < sizeof(receive_cmd_type); j++ )
+                        {
+                            receive_cmd_type = received_string[j];
+                            receive_cmd_type++;
+                        }*/
 
-						/*analyze the command and do it. */
-						PerformCommand(receive_cmd_type.motion_command, receive_cmd_type.pwm_value);
+                        /*load the accept command string to the command list structure*/
+                        receive_cmd_type = received_string;
+
+
+						/*identifier the command's format, if yes, analyze the command list and perform it. */
+                        if(receive_cmd_type->Identifier[0] =='c' && receive_cmd_type->Identifier[1] =='m' && receive_cmd_type->Identifier[2] =='d'){
+        					PerformCommand(receive_cmd_type->DIR_cmd, receive_cmd_type->pwm_value,
+        					               receive_cmd_type->Kp,      receive_cmd_type->Ki,     
+        					               receive_cmd_type->Kd);
+                        }
 
 
 						/*print out to other device to check acceped */
 						//printf("cmd :%c  pwm : %c\n" ,received_string[RECEIVE_CMD] , received_string[RECEIVE_PWM_VALUE]);
 
+
+                        
 						/*clear the received string and the flag*/
 						Receive_String_Ready = 0;
 						for( i = 0 ; i< MAX_STRLEN ; i++){
