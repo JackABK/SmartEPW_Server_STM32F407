@@ -17,24 +17,6 @@
 
 
 
-/*=================Re-define the all by pins=========================*/
-/****Motor****/            
-#define MOTOR_PWM_PORT                                            GPIOD
-#define MOTOR_LEFT_PWM_PIN                                        GPIO_Pin_13
-#define MOTOR_RIGHT_PWM_PIN                                       GPIO_Pin_15
-
-#define MOTOR_CWCCW_PORT                                          GPIOD
-#define MOTOR_LEFT_CWCCW_PIN                                      GPIO_Pin_12
-#define MOTOR_RIGHT_CWCCW_PIN                                     GPIO_Pin_14
-
-
-/****Encoder****/
-#define ENCODER_PORT                                              GPIOA
-#define ENCODER_LEFT_PHASE_A_PIN                                  GPIO_Pin_0      /*the inturrupt is maping to EXTI0*/
-#define ENCODER_RIGHT_PHASE_A_PIN                                 GPIO_Pin_1      /*the inturrupt is maping to EXTI1*/
-#define ENCODER_LEFT_PHASE_B_PIN                                  GPIO_Pin_2
-#define ENCODER_RIGHT_PHASE_B_PIN                                 GPIO_Pin_3
-/*===============end of define  the all by pins========================*/
 
 
 
