@@ -17,6 +17,26 @@
 
 
 
+/*=================Re-define the all by pins=========================*/
+/****Motor****/            
+#define MOTOR_PWM_PORT                                            GPIOD
+#define MOTOR_LEFT_PWM_PIN                                        GPIO_Pin_13
+#define MOTOR_RIGHT_PWM_PIN                                       GPIO_Pin_15
+
+#define MOTOR_CWCCW_PORT                                          GPIOD
+#define MOTOR_LEFT_CWCCW_PIN                                      GPIO_Pin_12
+#define MOTOR_RIGHT_CWCCW_PIN                                     GPIO_Pin_14
+
+
+/****Encoder****/
+#define ENCODER_PORT                                              GPIOA
+#define ENCODER_LEFT_PHASE_A_PIN                                  GPIO_Pin_0      /*the inturrupt is maping to EXTI0*/
+#define ENCODER_RIGHT_PHASE_A_PIN                                 GPIO_Pin_1      /*the inturrupt is maping to EXTI1*/
+#define ENCODER_LEFT_PHASE_B_PIN                                  GPIO_Pin_2
+#define ENCODER_RIGHT_PHASE_B_PIN                                 GPIO_Pin_3
+/*===============end of define  the all by pins========================*/
+
+
 
 typedef enum{
 		CAR_STATE_IDLE,
@@ -407,7 +427,6 @@ void PID_Algorithm_Polling(void)
 
 
 
-
 		/*restart motor calibration and re-count encoder count*/
 		if(car_state == CAR_STATE_MOVE_FORWARD){
 				proc_cmd("forward" , SpeedValue_left , SpeedValue_right);
@@ -426,7 +445,8 @@ void PID_Algorithm_Polling(void)
              * but the java accept byte have a sign bit problem,
              * on the java, byte is represent  -128~127
              */
-            printf("cmd%c%c\n",  (char)round(rpm_left_motor) ,(char) round(rpm_right_motor));
+            printf("cmd%c%c%c%c\n",  (char)round(rpm_left_motor),(char) round(rpm_right_motor),
+                                  (char)Get_CH1Distance()    ,(char)Get_CH2Distance());
             
 
             printf("-------------------EPW Info----------------------\r\n");
