@@ -245,15 +245,15 @@ void init_car(){
  *  for example the CAR_POLLING_PERIOD=20, CAR_MOVING_PERIOD=10,
  *  then the car moving will be keep 200(10*20) ms time.
  */
-#define CAR_MOVING_PERIOD 10 
+#define CAR_MOVING_PERIOD 250 
 #define CAR_REST_PERIOD  5
 void Car_State_Polling(){
-		static int count;
+		static int count=0;
         unsigned int distance[4];
         distance[0]=Get_CH1Distance();
         distance[1]=Get_CH2Distance();
-        distance[2]=Get_CH3Distance();
-        distance[3]=Get_CH4Distance();
+        //distance[2]=Get_CH3Distance();
+        //distance[3]=Get_CH4Distance();
         
 		if(car_state==CAR_STATE_IDLE){
 				count=0;
@@ -261,12 +261,12 @@ void Car_State_Polling(){
 		else if(car_state==CAR_STATE_REST){
 				proc_cmd("stop" , 0 , 0);
 
-                /*
+                
 				count++;
 				if(count>=CAR_REST_PERIOD){
 						count=0;
 						car_state=CAR_STATE_IDLE;
-				}*/
+				}
 		}
 		else if(car_state==CAR_STATE_MOVE_FORWARD){
 
@@ -301,27 +301,33 @@ void Car_State_Polling(){
                         break;
                 }
 #endif       
-                /*
-				count++;
+                count++;
 				if(count>=CAR_MOVING_PERIOD){
 						count=0;
 						car_state=CAR_STATE_REST;
-				}*/
-
+				}
 		}	
 		else if(car_state==CAR_STATE_MOVE_BACK){
-                /*
+                
 				count++;
 				if(count>=CAR_MOVING_PERIOD){
 						count=0;
 						car_state=CAR_STATE_REST;
-				}*/
+				}
 		}
         else if(car_state==CAR_STATE_MOVE_LEFT){
-
+                count++;
+				if(count>=CAR_MOVING_PERIOD){
+						count=0;
+						car_state=CAR_STATE_REST;
+				}
 		}   
         else if(car_state==CAR_STATE_MOVE_RIGHT){
-               
+                count++;
+				if(count>=CAR_MOVING_PERIOD){
+						count=0;
+						car_state=CAR_STATE_REST;
+    		    }
 		}    
 }
 
@@ -432,13 +438,16 @@ void PID_Algorithm_Polling(void)
              * but the java accept byte have a sign bit problem,
              * on the java, byte is represent  -128~127
              */
+
+            rpm_left_motor = 216.7f;
+            rpm_right_motor =  151.9f;
             printf("cmd%c%c%c%c\n",  (char)round(rpm_left_motor),(char) round(rpm_right_motor),
                                   (char)Get_CH1Distance()    ,(char)Get_CH2Distance());
             
 
             printf("-------------------EPW Info----------------------\r\n");
             printf("SpeedValue PWM-->   Left = %d   Right = %d\r\n" , SpeedValue_left,SpeedValue_right  );
-            printf("RPM-->   Left = %d   Right = %d\r\n" , (int)rpm_left_motor , (int)rpm_right_motor);
+            printf("RPM-->   Left = %d   Right = %d\r\n" , round(rpm_left_motor) , round(rpm_right_motor));
             printf("Encoder-->   Left = %d   Right =  %d\r\n" , encoder_left_counter , encoder_right_counter);      
             /*because freertos of printf cannot be used %f , so I scale 10 factor to convert int.*/
             printf("Kp = %d Ki = %d Kd = %d\r\n" ,(int)(PID_Motor_R.Kp*10.0f) , (int)(PID_Motor_R.Ki*10.0f), (int)(PID_Motor_R.Kd*10.0f));
