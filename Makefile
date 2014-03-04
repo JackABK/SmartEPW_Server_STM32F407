@@ -78,6 +78,7 @@ SRC+=clib.c
 SRC+=shell.c
 SRC+=PID.c
 SRC+=unit_tests.c
+SRC+=linear_actuator.c
 
 # FreeRTOS Source Files
 SRC+=port.c
