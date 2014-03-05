@@ -14,7 +14,7 @@ static void init_PWM(){
 		/* Enable GPIO B clock. */
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
 
-		GPIO_InitStruct.GPIO_Pin =  ACTU_FRONT_PWM_PIN|ACTU_BEHIND_PWM_PIN;
+		GPIO_InitStruct.GPIO_Pin =  ACTU_A_PWM_PIN|ACTU_B_PWM_PIN;
 		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
 		GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
 		GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
@@ -54,10 +54,10 @@ static void init_PWM(){
 		TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
 		TIM_OCInitStructure.TIM_Pulse = 0; /*max pwm value is TIM's period, in our case, it's  255*/
 		TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
-		/* PWM1 Mode configuration: Channel1   (ACTU_FRONT_PWM_PIN)*/
+		/* PWM1 Mode configuration: Channel1   (ACTU_A_PWM_PIN)*/
 		TIM_OC1Init(TIM3, &TIM_OCInitStructure);
 		TIM_OC1PreloadConfig(TIM3, TIM_OCPreload_Enable);
-		/* PWM1 Mode configuration: Channel2   (ACTU_BEHIND_PWM_PIN)*/
+		/* PWM1 Mode configuration: Channel2   (ACTU_B_PWM_PIN)*/
 		TIM_OC2Init(TIM3, &TIM_OCInitStructure);
 		TIM_OC2PreloadConfig(TIM3, TIM_OCPreload_Enable);
 
@@ -70,7 +70,7 @@ static void init_CWCCW(){
 		GPIO_InitTypeDef GPIO_InitStruct;
 		/* Enable GPIO D clock. */
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
-        GPIO_InitStruct.GPIO_Pin =  ACTU_FRONT_IN1_PIN| ACTU_FRONT_IN2_PIN | ACTU_BEHIND_IN3_PIN | ACTU_BEHIND_IN4_PIN ;
+		GPIO_InitStruct.GPIO_Pin =  ACTU_A_IN1_PIN| ACTU_A_IN2_PIN | ACTU_B_IN3_PIN | ACTU_B_IN4_PIN ;
 	
 		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;            // Alt Function - Push Pull
 		GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
@@ -78,63 +78,88 @@ static void init_CWCCW(){
 		GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
 		GPIO_Init( ACTU_CWCCW_PORT, &GPIO_InitStruct ); 
 		
-		GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_FRONT_IN1_PIN,Bit_RESET);
-		GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_FRONT_IN2_PIN,Bit_RESET);
-		GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_BEHIND_IN3_PIN,Bit_RESET);
-		GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_BEHIND_IN4_PIN,Bit_RESET);
+		GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_A_IN1_PIN,Bit_RESET);
+		GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_A_IN2_PIN,Bit_RESET);
+		GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_B_IN3_PIN,Bit_RESET);
+		GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_B_IN4_PIN,Bit_RESET);	
+}
+
+/* Limit Switch */
+static void init_LS_READ(){
+		GPIO_InitTypeDef GPIO_InitStruct;
+		/* Enable GPIO C clock. */
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+		GPIO_InitStruct.GPIO_Pin =  LS_A_UPPER_PIN | LS_A_LOWER_PIN | LS_B_UPPER_PIN | LS_B_LOWER_PIN ;
 	
+		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN;
+		GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
+		GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_DOWN;
+		GPIO_Init(LS_READ_PORT, &GPIO_InitStruct);
 }
 
 void init_linear_actuator(){
 		init_PWM();
 		init_CWCCW();
+		init_LS_READ();
 		return;
 
 }
 
 
-void set_LinearActuator_1_duty_cycle(int pwm_value){
+void set_LinearActuator_A_PWMvalue(int pwm_value){
 		TIM_SetCompare1(TIM3 , pwm_value);
 }
-void set_LinearActuator_2_duty_cycle(int pwm_value){
+void set_LinearActuator_B_PWMvalue(int pwm_value){
 		TIM_SetCompare2(TIM3 , pwm_value);
 }
 
 
-void set_LinearActuator_1_Dir(uint8_t flag){
+void set_LinearActuator_A_Dir(uint8_t flag){
 		switch(flag){
 				case STOP:
-						GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_FRONT_IN1_PIN,Bit_RESET);/* 0 */
-						GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_FRONT_IN2_PIN,Bit_RESET);/* 0 */
+						GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_A_IN1_PIN,Bit_RESET);/* 0 */
+						GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_A_IN2_PIN,Bit_RESET);/* 0 */
 						break;
 				case CW:
-						GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_FRONT_IN1_PIN,Bit_RESET);/* 0 */
-						GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_FRONT_IN2_PIN,Bit_SET);/* 1 */
+						GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_A_IN1_PIN,Bit_RESET);/* 0 */
+						GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_A_IN2_PIN,Bit_SET);/* 1 */
 						break;
 				case CCW:
-						GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_FRONT_IN1_PIN,Bit_SET);/* 1 */
-						GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_FRONT_IN2_PIN,Bit_RESET);/* 0 */ 
+						GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_A_IN1_PIN,Bit_SET);/* 1 */
+						GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_A_IN2_PIN,Bit_RESET);/* 0 */ 
 						break;
 		}
 }
-void set_LinearActuator_2_Dir(uint8_t flag){
+
+void set_LinearActuator_B_Dir(uint8_t flag){
 		switch(flag){
                 case STOP:
-                        GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_BEHIND_IN3_PIN,Bit_RESET);/* 0 */
-                        GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_BEHIND_IN4_PIN,Bit_RESET);/* 0 */
+                        GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_B_IN3_PIN,Bit_RESET);/* 0 */
+                        GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_B_IN4_PIN,Bit_RESET);/* 0 */
                         break;
                 case CW:
-                        GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_BEHIND_IN3_PIN,Bit_RESET);/* 0 */
-                        GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_BEHIND_IN4_PIN,Bit_SET);/* 1 */
+                        GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_B_IN3_PIN,Bit_RESET);/* 0 */
+                        GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_B_IN4_PIN,Bit_SET);/* 1 */
                         break;
                 case CCW:
-                        GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_BEHIND_IN3_PIN,Bit_SET);/* 1 */
-                        GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_BEHIND_IN4_PIN,Bit_RESET);/* 0 */ 
+                        GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_B_IN3_PIN,Bit_SET);/* 1 */
+                        GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_B_IN4_PIN,Bit_RESET);/* 0 */ 
                         break;
         }
-
-
-
-
 }
 
+void get_LimitSwitch_A_upper(){
+	GPIO_ReadInputDataBit(LS_READ_PORT, LS_A_UPPER_PIN);
+}
+
+void get_LimitSwitch_A_lower(){
+    GPIO_ReadInputDataBit(LS_READ_PORT, LS_A_LOWER_PIN);
+}
+
+void get_LimitSwitch_B_upper(){
+    GPIO_ReadInputDataBit(LS_READ_PORT, LS_B_UPPER_PIN);
+}
+
+void get_LimitSwitch_B_lower(){
+    GPIO_ReadInputDataBit(LS_READ_PORT, LS_B_LOWER_PIN);
+}
