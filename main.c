@@ -30,6 +30,8 @@
 #include "uart.h"
 #include  "clib.h"
 #include  "shell.h"
+#include  "linear_actuator.h"
+
 
 #define USE_FILELIB_STDIO_COMPAT_NAMES
 
@@ -52,7 +54,15 @@ void tesing_task(void* p) {
 				/*check out the system is not crash */
 				//GPIO_ToggleBits(GPIOD,GPIO_Pin_12);
 
-
+                /*testing linear actuator*/
+				if(!get_LimitSwitch_A_upper()){
+						set_LinearActuator_A_Dir(CCW);
+						set_LinearActuator_A_PWMvalue(255);
+				}else if(!get_LimitSwitch_A_lower()){
+						set_LinearActuator_A_Dir(CW);
+						set_LinearActuator_A_PWMvalue(255);
+				}
+                vTaskDelay(1000);
 
                 /*
                 forward_cmd(100 , 100);
@@ -153,10 +163,11 @@ int main(void) {
 		NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 		init_USART3(9600);
 		init_LED();
-		init_car();               
+		init_car();
+        init_linear_actuator();
 
 		/*create the task. */         
-		ret = xTaskCreate(tesing_task, "FPU", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
+		ret = xTaskCreate(tesing_task, "test task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
 		ret &= xTaskCreate(shell_task, "remote task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
 		if (ret == pdTRUE) {
 				printf("System Started!\n");
