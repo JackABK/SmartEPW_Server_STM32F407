@@ -35,6 +35,8 @@
 
 #define USE_FILELIB_STDIO_COMPAT_NAMES
 
+extern unsigned int ADC_Value_temp1;
+
 /*============================================================================*
  ** Prototype    : tesing_task
  ** Description  : test the relative mode and print to stdout , it's a task thread.
@@ -50,20 +52,39 @@
 DISTANCE_INFO_STRU distance_info_CH1;
 void tesing_task(void* p) { 
 		printf("Start testing the distance measure .\n");
+        int state=0;
+
+
+        while(1){
+            /*testing linear actuator*/
+                /*3000 means 3.00 voltage.*/
+              if(get_LimitSwitch_A_upper_Vol() <=3000){
+                    set_LinearActuator_A_Dir(CCW);
+                    set_LinearActuator_A_PWMvalue(255);
+                    vTaskDelay(5000);
+              }
+              else{
+                    set_LinearActuator_A_Dir(CW);
+                    set_LinearActuator_A_PWMvalue(255);
+
+
+
+              }
+              vTaskDelay(500);
+              printf("%d\n" ,get_LimitSwitch_A_upper_Vol());
+
+        }
+
+        
+        #if 0
 		for (;;) {
 				/*check out the system is not crash */
 				//GPIO_ToggleBits(GPIOD,GPIO_Pin_12);
 
-                /*testing linear actuator*/
-				if(!get_LimitSwitch_A_upper()){
-						set_LinearActuator_A_Dir(CCW);
-						set_LinearActuator_A_PWMvalue(255);
-				}else if(!get_LimitSwitch_A_lower()){
-						set_LinearActuator_A_Dir(CW);
-						set_LinearActuator_A_PWMvalue(255);
-				}
-                vTaskDelay(1000);
 
+                
+
+                                    
                 /*
                 forward_cmd(100 , 100);
 				vTaskDelay(1000);
@@ -94,6 +115,7 @@ void tesing_task(void* p) {
 						distance_info_CH1.avg = 0;
 				}
 		}
+        #endif
 		vTaskDelete(NULL);
 }
 

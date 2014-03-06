@@ -91,7 +91,7 @@ SRC+=heap_4.c
 # Standard Peripheral Source Files
 SRC+=stm32f4xx_syscfg.c
 SRC+=misc.c
-#SRC+=stm32f4xx_adc.c
+SRC+=stm32f4xx_adc.c
 #SRC+=stm32f4xx_dac.c
 SRC+=stm32f4xx_dma.c
 SRC+=stm32f4xx_exti.c
