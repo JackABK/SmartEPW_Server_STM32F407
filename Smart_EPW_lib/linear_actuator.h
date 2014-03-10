@@ -1,18 +1,13 @@
-/*=============================================================================*
- *
- *   * @file     : linear_actuator.h
- *    * @author        : skyline
- *     * @data       : 2014/3/4
- *      * @brief   : linear_actuator.c header file
- *       *
- *        *============================================================================*/
-
-
-
-
+/*=============================================================================
+  *
+  * @file     : linear_actuator.h
+  * @author        : skyline
+  * @data       : 2014/3/10
+  * @brief   : linear_actuator.c header file
+  *
+  *============================================================================*/
 #ifndef __LINEAR_ACTUATOR_H__
 #define __LINEAR_ACTUATOR_H__
-
 
 #define ACTU_PWM_PORT							GPIOB
 #define ACTU_A_PWM_PIN							GPIO_Pin_4
@@ -24,7 +19,6 @@
 #define ACTU_A_IN2_PIN							GPIO_Pin_1
 #define ACTU_B_IN3_PIN							GPIO_Pin_2
 #define ACTU_B_IN4_PIN							GPIO_Pin_3
-
 
 
 /*
@@ -42,4 +36,18 @@ enum{
 	CCW
 };
 
-#endif
+
+ void get_LimitSwitch_A_lower();
+ int get_LimitSwitch_A_upper_Vol();
+ void get_LimitSwitch_B_lower();
+ void get_LimitSwitch_B_upper();
+ static void init_CWCCW();
+ void init_linear_actuator();
+ static void init_LS_ADC();
+ static void init_PWM();
+ void set_linearActuator_A_cmd(int flag , int pwm_value);
+ void set_linearActuator_B_cmd(int flag , int pwm_value);
+
+
+
+#endif /* __LINEAR_ACTUATOR_H__ */

@@ -86,7 +86,7 @@ static void init_CWCCW(){
 /* Limit Switch */
 static void init_LS_ADC(){
 		ADC_InitTypeDef ADC_InitStructure;
-    		ADC_CommonInitTypeDef ADC_CommonInitStructure;
+		ADC_CommonInitTypeDef ADC_CommonInitStructure;
 		GPIO_InitTypeDef GPIO_InitStruct;
         DMA_InitTypeDef DMA_InitStructure;
 		/* Enable GPIO C clock. */
@@ -153,51 +153,50 @@ void init_linear_actuator(){
 
 }
 
-
-void set_LinearActuator_A_PWMvalue(int pwm_value){
-		TIM_SetCompare1(TIM3 , pwm_value);
-}
-void set_LinearActuator_B_PWMvalue(int pwm_value){
-		TIM_SetCompare2(TIM3 , pwm_value);
-}
-
-
-void set_LinearActuator_A_Dir(uint8_t flag){
+void set_linearActuator_A_cmd(int flag , int pwm_value){
 		switch(flag){
 				case STOP:
 						GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_A_IN1_PIN,Bit_RESET);/* 0 */
 						GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_A_IN2_PIN,Bit_RESET);/* 0 */
+                        TIM_SetCompare1(TIM3 , 0);
 						break;
 				case CW:
 						GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_A_IN1_PIN,Bit_RESET);/* 0 */
 						GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_A_IN2_PIN,Bit_SET);/* 1 */
+                        TIM_SetCompare1(TIM3 , pwm_value);
 						break;
 				case CCW:
 						GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_A_IN1_PIN,Bit_SET);/* 1 */
 						GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_A_IN2_PIN,Bit_RESET);/* 0 */ 
+                        TIM_SetCompare1(TIM3 , pwm_value);
 						break;
 		}
 }
 
-void set_LinearActuator_B_Dir(uint8_t flag){
+void set_linearActuator_B_cmd(int flag , int pwm_value){
 		switch(flag){
                 case STOP:
                         GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_B_IN3_PIN,Bit_RESET);/* 0 */
                         GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_B_IN4_PIN,Bit_RESET);/* 0 */
+                        TIM_SetCompare2(TIM3 , 0);
                         break;
                 case CW:
                         GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_B_IN3_PIN,Bit_RESET);/* 0 */
-                        GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_B_IN4_PIN,Bit_SET);/* 1 */
+                        GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_B_IN4_PIN,Bit_SET);/* 1 */                        
+                        TIM_SetCompare2(TIM3 , pwm_value);
                         break;
                 case CCW:
                         GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_B_IN3_PIN,Bit_SET);/* 1 */
                         GPIO_WriteBit(ACTU_CWCCW_PORT,ACTU_B_IN4_PIN,Bit_RESET);/* 0 */ 
+                        TIM_SetCompare2(TIM3 , pwm_value);
                         break;
         }
 }
 
 int get_LimitSwitch_A_upper_Vol(){
-    /*ADC_Voltage = ADC_Value * VDD /(2^resolution - 1)*/
+    /* ADC_Voltage = ADC_Value * VDD /(2^resolution - 1)
+     * for our case, used of resoulution 12 bits
+     */
     return ((float)ADC_Value_temp1 * 1.221f);
     
 }

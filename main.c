@@ -35,7 +35,6 @@
 
 #define USE_FILELIB_STDIO_COMPAT_NAMES
 
-extern unsigned int ADC_Value_temp1;
 
 /*============================================================================*
  ** Prototype    : tesing_task
@@ -59,16 +58,11 @@ void tesing_task(void* p) {
             /*testing linear actuator*/
                 /*3000 means 3.00 voltage.*/
               if(get_LimitSwitch_A_upper_Vol() <=3000){
-                    set_LinearActuator_A_Dir(CCW);
-                    set_LinearActuator_A_PWMvalue(255);
+                    set_linearActuator_A_cmd(CCW , 255);
                     vTaskDelay(5000);
               }
               else{
-                    set_LinearActuator_A_Dir(CW);
-                    set_LinearActuator_A_PWMvalue(255);
-
-
-
+                    set_linearActuator_B_cmd(CW , 255);
               }
               vTaskDelay(500);
               printf("%d\n" ,get_LimitSwitch_A_upper_Vol());
@@ -80,11 +74,7 @@ void tesing_task(void* p) {
 		for (;;) {
 				/*check out the system is not crash */
 				//GPIO_ToggleBits(GPIOD,GPIO_Pin_12);
-
-
-                
-
-                                    
+        
                 /*
                 forward_cmd(100 , 100);
 				vTaskDelay(1000);
