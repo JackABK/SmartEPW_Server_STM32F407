@@ -161,7 +161,7 @@ void init_encoder(void)
 
 		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN;
 		GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
-		GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_DOWN;
+		GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
 		GPIO_Init( ENCODER_PORT, &GPIO_InitStruct ); 
 }
 
@@ -404,7 +404,7 @@ void PerformCommand(unsigned char DIR_cmd , unsigned char pwm_value , unsigned c
  ** retval : None
  **============================================================================*/
 /*============================================================================*/
-#define OUTPUT_INFO_PERIOD 50 /*unit : PID_POLLING_PERIOD ms*/
+#define OUTPUT_INFO_PERIOD 25 /*unit : PID_POLLING_PERIOD ms*/
 void PID_Algorithm_Polling(void)
 {
 
@@ -438,9 +438,6 @@ void PID_Algorithm_Polling(void)
              * but the java accept byte have a sign bit problem,
              * on the java, byte is represent  -128~127
              */
-
-            rpm_left_motor = 216.7f;
-            rpm_right_motor =  151.9f;
             printf("cmd%c%c%c%c\n",  (char)round(rpm_left_motor),(char) round(rpm_right_motor),
                                   (char)Get_CH1Distance()    ,(char)Get_CH2Distance());
             

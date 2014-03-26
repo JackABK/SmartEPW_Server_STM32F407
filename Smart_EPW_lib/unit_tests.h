@@ -14,5 +14,4 @@
 #define run_test(test) do { char *message = test(); tests_run_cnt++; \
                                 if (message) return message; } while (0)
 extern int tests_run_cnt; /*unit tests running count*/
-
 #endif /* __UNIT_TESTS_H__ */

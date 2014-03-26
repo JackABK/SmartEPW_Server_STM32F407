@@ -30,8 +30,11 @@
 #include "uart.h"
 #include  "clib.h"
 #include  "shell.h"
+#include  "linear_actuator.h"
+
 
 #define USE_FILELIB_STDIO_COMPAT_NAMES
+
 
 /*============================================================================*
  ** Prototype    : tesing_task
@@ -48,12 +51,30 @@
 DISTANCE_INFO_STRU distance_info_CH1;
 void tesing_task(void* p) { 
 		printf("Start testing the distance measure .\n");
+        int state=0;
+
+
+        while(1){
+            /*testing linear actuator*/
+                /*3000 means 3.00 voltage.*/
+              if(get_LimitSwitch_A_upper_Vol() <=3000){
+                    set_linearActuator_A_cmd(CCW , 255);
+                    vTaskDelay(5000);
+              }
+              else{
+                    set_linearActuator_B_cmd(CW , 255);
+              }
+              vTaskDelay(500);
+              printf("%d\n" ,get_LimitSwitch_A_upper_Vol());
+
+        }
+
+        
+        #if 0
 		for (;;) {
 				/*check out the system is not crash */
 				//GPIO_ToggleBits(GPIOD,GPIO_Pin_12);
-
-
-
+        
                 /*
                 forward_cmd(100 , 100);
 				vTaskDelay(1000);
@@ -84,6 +105,7 @@ void tesing_task(void* p) {
 						distance_info_CH1.avg = 0;
 				}
 		}
+        #endif
 		vTaskDelete(NULL);
 }
 
@@ -153,10 +175,11 @@ int main(void) {
 		NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 		init_USART3(9600);
 		init_LED();
-		init_car();               
+		init_car();
+        init_linear_actuator();
 
 		/*create the task. */         
-		ret = xTaskCreate(tesing_task, "FPU", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
+		ret = xTaskCreate(tesing_task, "test task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
 		ret &= xTaskCreate(shell_task, "remote task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
 		if (ret == pdTRUE) {
 				printf("System Started!\n");
