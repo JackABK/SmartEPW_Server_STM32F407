@@ -95,7 +95,7 @@ static void init_LS_ADC(){
 		GPIO_InitStruct.GPIO_Pin =  LS_A_UPPER_PIN | LS_A_LOWER_PIN | LS_B_UPPER_PIN | LS_B_LOWER_PIN ;
 	
 		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AN;
-		GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
+		GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
 		GPIO_Init(LS_READ_PORT, &GPIO_InitStruct);
 
 		ADC_CommonInitStructure.ADC_Mode = ADC_Mode_Independent;
