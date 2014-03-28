@@ -28,11 +28,10 @@
  *Limit Switch
  */
 #define LS_READ_PORT							GPIOC
-#define LS_A_UPPER_PIN							GPIO_Pin_0
-#define LS_A_LOWER_PIN							GPIO_Pin_1
-#define LS_B_UPPER_PIN							GPIO_Pin_2
-#define LS_B_LOWER_PIN							GPIO_Pin_3
-
+#define LS_A_UPPER_PIN							GPIO_Pin_1
+#define LS_A_LOWER_PIN							GPIO_Pin_2
+#define LS_B_UPPER_PIN							GPIO_Pin_3
+#define LS_B_LOWER_PIN							GPIO_Pin_4
 enum{
 	STOP,
 	CW,
@@ -56,6 +55,7 @@ static void init_LS_ADC();
 static void init_PWM();
 void set_linearActuator_A_cmd(int flag , int pwm_value);
 void set_linearActuator_B_cmd(int flag , int pwm_value);
+int get_LimitSwitch_Vt(uint8_t actuator_id, uint8_t dir_flag);
 
 
 

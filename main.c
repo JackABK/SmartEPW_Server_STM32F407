@@ -35,7 +35,6 @@
 
 #define USE_FILELIB_STDIO_COMPAT_NAMES
 
-
 /*============================================================================*
  ** Prototype    : tesing_task
  ** Description  : test the relative mode and print to stdout , it's a task thread.
@@ -52,16 +51,21 @@ DISTANCE_INFO_STRU distance_info_CH1;
 void tesing_task(void* p) { 
 		printf("Start testing the distance measure .\n");
         int state=0;
+        int i = 0;
 		
         struct limit_switch_info limit_switch_info_A , limit_switch_info_B;
 		/* initial two linear actuator*/
 		//set_linearActuator_A_cmd(CW, 255);
 		//vTaskDelay(10000);
 
+        set_linearActuator_A_cmd(CCW , 255);
+        vTaskDelay(1000);
+    
 		while(1){
 				/*determine the upper and lower state.*/
-				limit_switch_info_A.upper_state = get_LimitSwitch_A_upper_Vt()<=3000?  1 : 0;
-				limit_switch_info_A.lower_state = get_LimitSwitch_A_lower_Vt()<=3000?  1 : 0;
+                limit_switch_info_A.lower_state = get_LimitSwitch_Vt(1,0)<=3000?  1 : 0;
+                limit_switch_info_A.upper_state = get_LimitSwitch_Vt(1,1)<=3000?  1 : 0;
+				
 
 
 				/*testing linear actuator*/
@@ -74,11 +78,27 @@ void tesing_task(void* p) {
 				else if(limit_switch_info_A.lower_state){/*lower state.*/
 						set_linearActuator_A_cmd(CW , 255);
 				}
+                else{/*normal range.*/                         
+                        ;
+                }
 
 				vTaskDelay(500);
 				//printf("%d\n" ,get_LimitSwitch_A_upper_Vt());
 		}
+     
 
+
+        #if 0
+        /*testing multi-ch by ADC.*/
+        while(1){
+            printf("ADC0: %d\r\n" ,get_LimitSwitch_Vt(0,0));
+            printf("ADC1: %d\r\n" ,get_LimitSwitch_Vt(0,1));
+            //printf("ADC2: %d\r\n" ,get_LimitSwitch_Vt(1,0));
+            //printf("ADC3: %d\r\n" ,get_LimitSwitch_Vt(1,1));
+            printf("-----------ADC Testing---------------\r\n");
+            vTaskDelay(1000);
+        }
+        #endif
         
         #if 0
 		for (;;) {
