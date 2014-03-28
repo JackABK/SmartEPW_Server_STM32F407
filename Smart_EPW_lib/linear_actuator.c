@@ -4,7 +4,8 @@
 #include "task.h"
 
 
-unsigned int ADC_Value_temp1;
+#define MAX_ADC_CH_SIZE 4
+unsigned int ADC_Value_temp[MAX_ADC_CH_SIZE];
 
 
 
@@ -91,14 +92,14 @@ static void init_LS_ADC(){
         DMA_InitTypeDef DMA_InitStructure;
 		/* Enable GPIO C clock. */
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2 | RCC_AHB1Periph_GPIOC, ENABLE);
-		RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC3, ENABLE);
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
 
-        DMA_InitStructure.DMA_Channel = DMA_Channel_2; 
-        DMA_InitStructure.DMA_PeripheralBaseAddr = (unsigned int)0x4001224C;
-        DMA_InitStructure.DMA_Memory0BaseAddr =(unsigned int) &ADC_Value_temp1;
+        DMA_InitStructure.DMA_Channel = DMA_Channel_0;  /*ADC1*/
+        DMA_InitStructure.DMA_PeripheralBaseAddr = (unsigned int)0x4001204C;
+        DMA_InitStructure.DMA_Memory0BaseAddr =(unsigned int) &ADC_Value_temp[0];
         DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory;
-        DMA_InitStructure.DMA_BufferSize = 1;
-        DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+        DMA_InitStructure.DMA_BufferSize = 4;
+        DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Enable;
         DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Disable;
         DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
         DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_HalfWord;
@@ -114,7 +115,7 @@ static void init_LS_ADC(){
     
 		GPIO_InitStruct.GPIO_Pin =  LS_A_UPPER_PIN | LS_A_LOWER_PIN | LS_B_UPPER_PIN | LS_B_LOWER_PIN ;
 		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AN;
-		GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_UP;
+		GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
 		GPIO_Init(LS_READ_PORT, &GPIO_InitStruct);
 
 		ADC_CommonInitStructure.ADC_Mode = ADC_Mode_Independent;
@@ -124,25 +125,31 @@ static void init_LS_ADC(){
 		ADC_CommonInit(&ADC_CommonInitStructure);
 		
 		ADC_InitStructure.ADC_Resolution = ADC_Resolution_12b;
-		ADC_InitStructure.ADC_ScanConvMode = DISABLE;
+		ADC_InitStructure.ADC_ScanConvMode = ENABLE;
 		ADC_InitStructure.ADC_ContinuousConvMode = ENABLE;
 		ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None;
 		ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_T1_CC1;
 		ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;
 		ADC_InitStructure.ADC_NbrOfConversion = 1;
-		ADC_Init(ADC3, &ADC_InitStructure);
+		ADC_Init(ADC1, &ADC_InitStructure);
 
-		ADC_RegularChannelConfig(ADC3, ADC_Channel_11, 1, ADC_SampleTime_3Cycles);
+		
+		
+		/*PC1~PC4*/
+		ADC_RegularChannelConfig(ADC1, ADC_Channel_10, 1, ADC_SampleTime_3Cycles);
+		ADC_RegularChannelConfig(ADC1, ADC_Channel_11, 2, ADC_SampleTime_3Cycles);
+		ADC_RegularChannelConfig(ADC1, ADC_Channel_12, 3, ADC_SampleTime_3Cycles);
+		ADC_RegularChannelConfig(ADC1, ADC_Channel_13, 4, ADC_SampleTime_3Cycles);
 
-		/*ADC3 */
-		ADC_Cmd(ADC3, ENABLE);
+		/*ADC1 */
+		ADC_Cmd(ADC1, ENABLE);
 
-        ADC_DMARequestAfterLastTransferCmd(ADC3, ENABLE);
+        ADC_DMARequestAfterLastTransferCmd(ADC1, ENABLE);
 
-        ADC_DMACmd(ADC3, ENABLE);
+        ADC_DMACmd(ADC1, ENABLE);
 
   
-        ADC_SoftwareStartConv(ADC3);
+        ADC_SoftwareStartConv(ADC1);
 }
 
 void init_linear_actuator(){
@@ -193,22 +200,23 @@ void set_linearActuator_B_cmd(int flag , int pwm_value){
         }
 }
 
-int get_LimitSwitch_A_upper_Vol(){
-    /* ADC_Voltage = ADC_Value * VDD /(2^resolution - 1)
-     * for our case, used of resoulution 12 bits
-     */
-    return ((float)ADC_Value_temp1 * 1.221f);
-    
+
+
+/* ADC_Voltage = ADC_Value * VDD /(2^resolution - 1)
+ * for our case, used of resoulution 12 bits
+ */
+int get_LimitSwitch_A_upper_Vt(){
+		return ((float)ADC_Value_temp[0] * 1.221f);
 }
 
-void get_LimitSwitch_A_lower(){
-    GPIO_ReadInputDataBit(LS_READ_PORT, LS_A_LOWER_PIN);
+void get_LimitSwitch_A_lower_Vt(){
+		return ((float)ADC_Value_temp[1] * 1.221f);
 }
 
-void get_LimitSwitch_B_upper(){
-    GPIO_ReadInputDataBit(LS_READ_PORT, LS_B_UPPER_PIN);
+void get_LimitSwitch_B_upper_Vt(){
+		return ((float)ADC_Value_temp[2] * 1.221f); /*ADC_Vaule_temp2 is not to setup.*/
 }
 
-void get_LimitSwitch_B_lower(){
-    GPIO_ReadInputDataBit(LS_READ_PORT, LS_B_LOWER_PIN);
+void get_LimitSwitch_B_lower_Vt(){
+		return ((float)ADC_Value_temp[3] * 1.221f);
 }

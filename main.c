@@ -52,22 +52,32 @@ DISTANCE_INFO_STRU distance_info_CH1;
 void tesing_task(void* p) { 
 		printf("Start testing the distance measure .\n");
         int state=0;
+		
+        struct limit_switch_info limit_switch_info_A , limit_switch_info_B;
+		/* initial two linear actuator*/
+		//set_linearActuator_A_cmd(CW, 255);
+		//vTaskDelay(10000);
+
+		while(1){
+				/*determine the upper and lower state.*/
+				limit_switch_info_A.upper_state = get_LimitSwitch_A_upper_Vt()<=3000?  1 : 0;
+				limit_switch_info_A.lower_state = get_LimitSwitch_A_lower_Vt()<=3000?  1 : 0;
 
 
-        while(1){
-            /*testing linear actuator*/
-                /*3000 means 3.00 voltage.*/
-              if(get_LimitSwitch_A_upper_Vol() <=3000){
-                    set_linearActuator_A_cmd(CCW , 255);
-                    vTaskDelay(5000);
-              }
-              else{
-                    set_linearActuator_B_cmd(CW , 255);
-              }
-              vTaskDelay(500);
-              printf("%d\n" ,get_LimitSwitch_A_upper_Vol());
+				/*testing linear actuator*/
+				/*3000 means 3.00 voltage.*/
 
-        }
+				/*upper state.*/
+				if(limit_switch_info_A.upper_state){/*achieve to upper limit.*/
+						set_linearActuator_A_cmd(CCW , 255);
+				} 
+				else if(limit_switch_info_A.lower_state){/*lower state.*/
+						set_linearActuator_A_cmd(CW , 255);
+				}
+
+				vTaskDelay(500);
+				//printf("%d\n" ,get_LimitSwitch_A_upper_Vt());
+		}
 
         
         #if 0

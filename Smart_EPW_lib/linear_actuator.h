@@ -9,6 +9,9 @@
 #ifndef __LINEAR_ACTUATOR_H__
 #define __LINEAR_ACTUATOR_H__
 
+#include "stm32f4xx_syscfg.h"
+
+
 #define ACTU_PWM_PORT							GPIOB
 #define ACTU_A_PWM_PIN							GPIO_Pin_4
 #define ACTU_B_PWM_PIN							GPIO_Pin_5
@@ -25,10 +28,10 @@
  *Limit Switch
  */
 #define LS_READ_PORT							GPIOC
-#define LS_A_UPPER_PIN							GPIO_Pin_1
-#define LS_A_LOWER_PIN							GPIO_Pin_2
-#define LS_B_UPPER_PIN							GPIO_Pin_3
-#define LS_B_LOWER_PIN							GPIO_Pin_4
+#define LS_A_UPPER_PIN							GPIO_Pin_0
+#define LS_A_LOWER_PIN							GPIO_Pin_1
+#define LS_B_UPPER_PIN							GPIO_Pin_2
+#define LS_B_LOWER_PIN							GPIO_Pin_3
 
 enum{
 	STOP,
@@ -37,16 +40,22 @@ enum{
 };
 
 
- void get_LimitSwitch_A_lower();
- int get_LimitSwitch_A_upper_Vol();
- void get_LimitSwitch_B_lower();
- void get_LimitSwitch_B_upper();
- static void init_CWCCW();
- void init_linear_actuator();
- static void init_LS_ADC();
- static void init_PWM();
- void set_linearActuator_A_cmd(int flag , int pwm_value);
- void set_linearActuator_B_cmd(int flag , int pwm_value);
+
+struct limit_switch_info{
+	uint8_t upper_state;
+	uint8_t lower_state;
+};
+
+void get_LimitSwitch_A_lower();
+int get_LimitSwitch_A_upper_Vol();
+void get_LimitSwitch_B_lower();
+void get_LimitSwitch_B_upper();
+static void init_CWCCW();
+void init_linear_actuator();
+static void init_LS_ADC();
+static void init_PWM();
+void set_linearActuator_A_cmd(int flag , int pwm_value);
+void set_linearActuator_B_cmd(int flag , int pwm_value);
 
 
 
