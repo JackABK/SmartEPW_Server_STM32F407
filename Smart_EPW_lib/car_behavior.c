@@ -428,7 +428,8 @@ void PID_Algorithm_Polling(void)
 				proc_cmd("backward" , SpeedValue_left , SpeedValue_right);
 		}
 
-		  
+
+#ifdef OUTPUT_EPW_INFO          
 		/*print the motor relative parameter to stdout*/
         if(output_info_count >= OUTPUT_INFO_PERIOD-1 )
         {
@@ -454,6 +455,7 @@ void PID_Algorithm_Polling(void)
         else{
             output_info_count++;
         }
+#endif         
 
         encoder_left_counter = 0;   
         encoder_right_counter = 0; 
