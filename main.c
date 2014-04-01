@@ -62,14 +62,14 @@ void tesing_task(void* p) {
         vTaskDelay(1000);
     
 		while(1){
-				/*determine the upper and lower state.*/
+				
+				/** 
+				 *  testing linear actuator
+				 *  3000 means 3.00 voltage.
+                 *  determine the upper and lower state.
+                 **/
                 limit_switch_info_A.lower_state = get_LimitSwitch_Vt(1,0)<=3000?  1 : 0;
                 limit_switch_info_A.upper_state = get_LimitSwitch_Vt(1,1)<=3000?  1 : 0;
-				
-
-
-				/*testing linear actuator*/
-				/*3000 means 3.00 voltage.*/
 
 				/*upper state.*/
 				if(limit_switch_info_A.upper_state){/*achieve to upper limit.*/
