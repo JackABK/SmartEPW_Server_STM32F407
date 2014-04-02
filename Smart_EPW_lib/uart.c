@@ -109,18 +109,23 @@ void USART3_IRQHandler(void){
 				 * or the if the maximum string length has been been reached 
 				 */
 
-				if( Receive_data != '\n'){ 
+				if( cnt < MAX_STRLEN){ 
 						received_string[cnt] = Receive_data;
-						/*Ready to parse the command */
-						if(cnt == CMD_LIST_LENGTH- 1){
-								Receive_String_Ready = 1;
-								cnt=0;
-						}
-						else{
-								cnt++;
-						}
+                        
+                        if(cnt>=2){
+                            /*start determine the period of command.*/
+                            if(received_string[cnt-2]=='e' && received_string[cnt-1]=='n' && received_string[cnt]=='d'){
+                                Receive_String_Ready = 1; /*Ready to parse the command */
+                                cnt=0; /*restart to accept next stream message.*/
+                            }
+                            else{
+                                cnt++;
+                            }
+                        }else{
+                            cnt++;
+                        }
 				}
-				else{ // otherwise reset the character counter and print the received string
+				else{ // over the max string length, cnt return to zero.
 						Receive_String_Ready=0;
 						cnt = 0;  
 						//USART_puts(USART3, received_string);
