@@ -398,7 +398,6 @@ void parse_EPW_motor_dir(unsigned char DIR_cmd)
 		else{
 				/*do not anything*/
 		}
-        //printf("%c %d %d \n" ,  acpt_cmd , SpeedValue_left , SpeedValue_right);
 }
 
 void PerformCommand(unsigned char group,unsigned char control_id, unsigned char value)
