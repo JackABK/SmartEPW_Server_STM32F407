@@ -28,6 +28,8 @@ static cmd_list  motor_cmds_table[] = {
 		DECLARE_COMMAND(right,"Motor Right!!")
 };
 
+
+
 /* =========================Control Function============================ */
 /* for the L298N, In1 = 1 means CW and In1=0 means CCW by our settings,
  * In2 is used by PWM signal, the In1 = In2 is stop motion when Enable_A is pull high.  

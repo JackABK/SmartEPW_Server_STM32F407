@@ -50,7 +50,11 @@ static float set_rpm=300.0f;
 /*pwm regulate of two motor */
 static int SpeedValue_left; /*default speedvalue*/
 static int SpeedValue_right;
+static int motor_pwm_value=50; /*global pwm value.*/
 static char flag;
+
+/*pid alg premeter.*/
+static float Kp,Ki,Kd;
 
 /*Timer handle declare*/
 xTimerHandle carTimers;
@@ -227,6 +231,10 @@ void init_car(){
 
 		PID_Timers=xTimerCreate("PID_Algorithm_Polling",( PID_POLLING_PERIOD), pdTRUE, ( void * ) 1,  PID_Algorithm_Polling);
 		xTimerStart( PID_Timers, 0 );
+
+        /*Initialization the right motor of pid paremeter.*/
+        Kp=3.0f; Ki=2.0f; Kd=0.0f;
+        InitPID(&PID_Motor_R , Kp ,Ki,Kd);
 }
 
 
@@ -333,22 +341,21 @@ void Car_State_Polling(){
 
 /*============================================================================*/
 /*============================================================================*
- ** function : PerformCommand
- ** brief : parse the command from the uart siganl,
-            note, the pwm_value  max is 255, even if 256, it's duty cycle is equal to 255.
- ** param : DIR_cmd , pwm_value , Kp , Ki , Kd
+ ** function : parse_EPW_motor_dir
+ ** brief : parse the EPW of motor direction from the uart siganl,
+            note, the motor_pwm_value  max is 255, even if 256, it's duty cycle is equal to 255.
+ ** param : DIR_cmd
  ** retval :  None
  **============================================================================*/
 /*============================================================================*/
-void PerformCommand(unsigned char DIR_cmd , unsigned char pwm_value , unsigned char Kp , unsigned char Ki , unsigned char Kd)
+void parse_EPW_motor_dir(unsigned char DIR_cmd)
 {
-        InitPID(&PID_Motor_R , (float)Kp/10.0f ,(float)Ki/10.0f,(float)Kd/10.0f);
-        
+       
 		if(DIR_cmd == 'f'){
 				car_state = CAR_STATE_MOVE_FORWARD;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
-				SpeedValue_left = (int)pwm_value; 
+				SpeedValue_left = (int)motor_pwm_value; 
 				SpeedValue_right=SpeedValue_left;
 
 				proc_cmd("forward" , SpeedValue_left , SpeedValue_right);
@@ -368,7 +375,7 @@ void PerformCommand(unsigned char DIR_cmd , unsigned char pwm_value , unsigned c
                 car_state = CAR_STATE_MOVE_BACK;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
-				SpeedValue_left = (int)pwm_value ; 
+				SpeedValue_left = (int)motor_pwm_value ; 
 				SpeedValue_right=SpeedValue_left;
 				proc_cmd("backward" , SpeedValue_left , SpeedValue_right);
 		}
@@ -376,7 +383,7 @@ void PerformCommand(unsigned char DIR_cmd , unsigned char pwm_value , unsigned c
                 car_state = CAR_STATE_MOVE_LEFT;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
-				SpeedValue_left = (int)pwm_value ; 
+				SpeedValue_left = (int)motor_pwm_value ; 
 				SpeedValue_right=SpeedValue_left;
 				proc_cmd("left" , SpeedValue_left , SpeedValue_right);
 		}
@@ -384,16 +391,81 @@ void PerformCommand(unsigned char DIR_cmd , unsigned char pwm_value , unsigned c
                 car_state = CAR_STATE_MOVE_RIGHT;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
-				SpeedValue_left = (int)pwm_value ; 
+				SpeedValue_left = (int)motor_pwm_value ; 
 				SpeedValue_right=SpeedValue_left;
 				proc_cmd("right" , SpeedValue_left , SpeedValue_right);
 		}
 		else{
 				/*do not anything*/
 		}
-        
         //printf("%c %d %d \n" ,  acpt_cmd , SpeedValue_left , SpeedValue_right);
 }
+
+void PerformCommand(unsigned char group,unsigned char control_id, unsigned char value)
+{
+   if(group == ACCEPT_EPW_CMD){ /*0*/
+		switch ( control_id )
+		{
+		    case EPW_MOTOR_DIR:
+		        parse_EPW_motor_dir(value);
+		        break;
+		    case EPW_MOTOR_PWM:
+		        motor_pwm_value = value; /*0~255*/
+		        break;
+		    case EPW_ACTUATOR_A :
+		        set_linearActuator_A_cmd(value , 255); /*the actuator of pwm_value is fixed, value is dir flag.*/
+		        break;
+		    case EPW_ACTUATOR_B :                
+		        set_linearActuator_B_cmd(value , 255); /*the actuator of pwm_value is fixed. value is dir flag.*/
+		        break;
+		    case EPW_PID_ALG_KP :
+                 Kp = (float)value;
+		         InitPID(&PID_Motor_R , Kp/10.0f ,Ki,Kd);
+		        break;
+		    case EPW_PID_ALG_KI :
+                 Ki = (float)value;
+		         InitPID(&PID_Motor_R , Kp, Ki/10.0f, Kd);
+		        break;
+            case EPW_PID_ALG_KD :
+                 Kd = (float)value;
+		         InitPID(&PID_Motor_R , Kp, Ki, Kd/10.0f);
+		        break;
+		    default:
+		        ;
+		}
+   }else if(group == SEND_EPW_INFO) { /*1*/
+        switch ( control_id )
+		{
+		    case EPW_ULTRASONIC_0 :
+		        
+		        break;
+		    case EPW_ULTRASONIC_1 :
+		        
+		        break;
+		    case EPW_ULTRASONIC_2 :
+		        
+		        break;
+		    case EPW_ULTRASONIC_3 :
+		        
+		        break;
+		    case EPW_ACTUATOR_LIMIT_SWITCH_A:
+		        
+		        break;
+            case EPW_ACTUATOR_LIMIT_SWITCH_B:
+		        
+		        break;
+            case EPW_LEFT_RPM:
+		        
+		        break;
+            case EPW_RIGHT_RPM:
+		        
+		        break; 
+		    default:
+		        ;
+		}
+   }
+}
+
 
 
 /*============================================================================*/

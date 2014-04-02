@@ -34,6 +34,45 @@ extern inline void right_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_righ
 extern inline void stop_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right);
 extern void proc_cmd(char *cmd , uint32_t SpeedValue_left , uint32_t SpeedValue_right );
 
+
+/* EPW control issue */
+typedef enum _EPW_Control_issue EPW_Control_issue;
+enum _EPW_Control_issue {
+    EPW_MOTOR_DIR, 
+    EPW_MOTOR_PWM,
+    EPW_ACTUATOR_A,
+    EPW_ACTUATOR_B,
+    EPW_PID_ALG_KP,
+    EPW_PID_ALG_KI,
+    EPW_PID_ALG_KD,
+    EPW_PID_ALG,
+    EPW_GPIO,
+    EPW_Servo_0,
+    EPW_Servo_1,
+    EPW_LED
+};
+
+/* EPW info issue */
+typedef enum _EPW_Info_issue EPW_Info_issue;
+enum _EPW_Info_issue {
+    EPW_ULTRASONIC_0,        
+    EPW_ULTRASONIC_1,
+    EPW_ULTRASONIC_2,
+    EPW_ULTRASONIC_3,
+    EPW_ACTUATOR_LIMIT_SWITCH_A,
+    EPW_ACTUATOR_LIMIT_SWITCH_B,
+    EPW_LEFT_RPM,
+    EPW_RIGHT_RPM,
+};
+
+/* commands which can be send to the output plugin */
+typedef enum _cmd_group cmd_group;
+enum  _cmd_group {
+    ACCEPT_EPW_CMD = 0, // "EPW" means electric power wheelchair, include the EPW's motor, linear actuator etc...
+    SEND_EPW_INFO = 1, // include the ultrasonic, limit switch, etc...
+};
+
+
 /* this a chip set ing eintldkoe, ithkoe , dksods . */
 #ifdef __cplusplus
 #if __cplusplus
