@@ -92,7 +92,7 @@ void ultra_sound_init(){
 		init_echo();
 		init_trigger();
 
-		ultrasoundTimers=xTimerCreate("ultrasound",(20), pdTRUE, ( void * ) 1,  UltrasoundPolling	 );
+		ultrasoundTimers=xTimerCreate("ultrasound",(25), pdTRUE, ( void * ) 1,  UltrasoundPolling	 );
 		xTimerStart( ultrasoundTimers, 0 );
 }
 void close_UltrasoundPolling(void)
@@ -177,15 +177,15 @@ void init_echo(){
 void init_trigger(){
 		GPIO_InitTypeDef GPIO_InitStruct;
 
-		GPIO_InitStruct.GPIO_Pin =	GPIO_PIN_TRIGGER_0|GPIO_PIN_TRIGGER_1; //PD12->LED3 PD13->LED4 PD14->LED5 PDa5->LED6
-		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;			  // Alt Function - Push Pull
+		GPIO_InitStruct.GPIO_Pin =	GPIO_PIN_TRIGGER_0|GPIO_PIN_TRIGGER_1; 
+		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;			  
 		GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
 		GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
 		GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
 		GPIO_Init( GPIO_PORT_TRIGGER_0, &GPIO_InitStruct );
 
-		GPIO_InitStruct.GPIO_Pin =	GPIO_PIN_TRIGGER_2|GPIO_PIN_TRIGGER_3; //PD12->LED3 PD13->LED4 PD14->LED5 PDa5->LED6
-		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;			  // Alt Function - Push Pull
+		GPIO_InitStruct.GPIO_Pin =	GPIO_PIN_TRIGGER_2|GPIO_PIN_TRIGGER_3; 
+		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;			 
 		GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
 		GPIO_InitStruct.GPIO_Speed = GPIO_Speed_100MHz;
 		GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
