@@ -72,8 +72,8 @@ SRC+=example.c
 
 #SmartEPW_lib
 SRC+=ultrasound.c
-SRC+=car_behavior.c
-SRC+=car_command.c
+SRC+=EPW_behavior.c
+SRC+=EPW_command.c
 SRC+=uart.c
 SRC+=clib.c
 SRC+=shell.c
