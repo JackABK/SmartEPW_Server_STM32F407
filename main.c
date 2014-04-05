@@ -26,7 +26,7 @@
 #include "stm32f4xx_gpio.h"
 #include "stm32f4xx_exti.h"
 #include "example.h"
-#include "car_behavior.h"
+#include "EPW_behavior.h"
 #include "uart.h"
 #include  "clib.h"
 #include  "shell.h"
@@ -50,10 +50,9 @@
 DISTANCE_INFO_STRU distance_info_CH1;
 void tesing_task(void* p) { 
 		printf("Start testing the distance measure .\n");
-        int state=0;
         int i = 0;
 		
-        struct limit_switch_info limit_switch_info_A , limit_switch_info_B;
+        struct limit_switch_info actuator_LS_state;
 		/* initial two linear actuator*/
 		//set_linearActuator_A_cmd(CW, 255);
 		//vTaskDelay(10000);
@@ -68,26 +67,27 @@ void tesing_task(void* p) {
 				 *  3000 means 3.00 voltage.
                  *  determine the upper and lower state.
                  **/
-                limit_switch_info_A.lower_state = get_LimitSwitch_Vt(1,0)<=3000?  1 : 0;
-                limit_switch_info_A.upper_state = get_LimitSwitch_Vt(1,1)<=3000?  1 : 0;
+                actuator_LS_state.actuatorA_LS_state|= get_LimitSwitch_Vt(1,0)<=3000?   0x01 : 0x00; /*lower limited*/
+                actuator_LS_state.actuatorA_LS_state|= get_LimitSwitch_Vt(1,1)<=3000?   0x02 : 0x00; /*upper limited*/
 
-				/*upper state.*/
-				if(limit_switch_info_A.upper_state){/*achieve to upper limit.*/
-						set_linearActuator_A_cmd(CCW , 255);
-				} 
-				else if(limit_switch_info_A.lower_state){/*lower state.*/
-						set_linearActuator_A_cmd(CW , 255);
-				}
-                else{/*normal range.*/                         
-                        ;
-                }
+                switch(actuator_LS_state.actuatorA_LS_state){
+                     case 0x00://normal range.
+                         break;
+                     case 0x01://lower limited
+                         set_linearActuator_A_cmd(CW , 255);
+                         break;
+                     case 0x02://upper limited
+                         set_linearActuator_A_cmd(CCW , 255);
+                         break;
+                     case 0x03://both limited, but isn't impossible in actually.
+                         break;
+               }
 
 				vTaskDelay(500);
 				//printf("%d\n" ,get_LimitSwitch_A_upper_Vt());
 		}
      
-
-
+                   
         #if 0
         /*testing multi-ch by ADC.*/
         while(1){
@@ -210,7 +210,7 @@ int main(void) {
 
 		/*create the task. */         
 		ret = xTaskCreate(tesing_task, "test task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
-		ret &= xTaskCreate(shell_task, "remote task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
+		ret &= xTaskCreate(receive_task, "remote task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
 		if (ret == pdTRUE) {
 				printf("System Started!\n");
 				vTaskStartScheduler();  // should never return

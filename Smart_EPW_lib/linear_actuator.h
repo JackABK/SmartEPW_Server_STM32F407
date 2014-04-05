@@ -41,9 +41,11 @@ enum{
 
 
 struct limit_switch_info{
-	uint8_t upper_state;
-	uint8_t lower_state;
+	uint8_t actuatorA_LS_state;
+	uint8_t actuatorB_LS_state;
 };
+
+
 
 void get_LimitSwitch_A_lower();
 int get_LimitSwitch_A_upper_Vol();
