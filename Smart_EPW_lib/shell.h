@@ -11,7 +11,7 @@
 #ifndef __SHELL_H__
 #define __SHELL_H__
 
-extern void shell_task(void *p);
+extern void receive_task(void *p);
 
 
 /*determine yes or no reatch the MAX_STRLEN  */

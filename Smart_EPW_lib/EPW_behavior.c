@@ -2,12 +2,12 @@
 #include "timers.h"
 #include "stm32f4xx_gpio.h"
 #include "stm32f4xx_syscfg.h"
-#include "car_behavior.h"
+#include "EPW_behavior.h"
 #include "ultrasound.h"
 #include "timers.h"
 #include "uart.h"
 #include "clib.h"
-#include "car_command.h"
+#include "EPW_command.h"
 #include "PID.h"
 
 
@@ -39,10 +39,10 @@ pid_struct PID_Motor_R;
 
 
 /*encoder_left  variable.  setting*/
-static float rpm_left_motor = 0.0f;
+ float rpm_left_motor = 0.0f;
 static int encoder_left_counter;
 /*encoder_right  variable  setting*/
-static float rpm_right_motor = 0.0f;
+ float rpm_right_motor = 0.0f;
 static int encoder_right_counter;
 
 static float set_rpm=300.0f;
@@ -498,35 +498,6 @@ void PID_Algorithm_Polling(void)
 		else if(car_state == CAR_STATE_MOVE_BACK) {
 				proc_cmd("backward" , SpeedValue_left , SpeedValue_right);
 		}
-
-
-#ifdef OUTPUT_EPW_INFO          
-		/*print the motor relative parameter to stdout*/
-        if(output_info_count >= OUTPUT_INFO_PERIOD-1 )
-        {
-            /**
-             * send command list format to Android used 
-             * Note, because transfer data's unit is byte, so I convert to char,
-             * but the java accept byte have a sign bit problem,
-             * on the java, byte is represent  -128~127
-             */
-            printf("cmd%c%c%c%c\n",  (char)round(rpm_left_motor),(char) round(rpm_right_motor),
-                                  (char)Get_CH1Distance()    ,(char)Get_CH2Distance());
-            
-
-            printf("-------------------EPW Info----------------------\r\n");
-            printf("SpeedValue PWM-->   Left = %d   Right = %d\r\n" , SpeedValue_left,SpeedValue_right  );
-            printf("RPM-->   Left = %d   Right = %d\r\n" , round(rpm_left_motor) , round(rpm_right_motor));
-            printf("Encoder-->   Left = %d   Right =  %d\r\n" , encoder_left_counter , encoder_right_counter);      
-            /*because freertos of printf cannot be used %f , so I scale 10 factor to convert int.*/
-            printf("Kp = %d Ki = %d Kd = %d\r\n" ,(int)(PID_Motor_R.Kp*10.0f) , (int)(PID_Motor_R.Ki*10.0f), (int)(PID_Motor_R.Kd*10.0f));
- 
-            output_info_count = 0;
-        }
-        else{
-            output_info_count++;
-        }
-#endif         
 
         encoder_left_counter = 0;   
         encoder_right_counter = 0; 
