@@ -17,8 +17,8 @@ Modification: Created file
 
  ******************************************************************************/
 
-#ifndef __CAR_COMMAND_H__
-#define __CAR_COMMAND_H__
+#ifndef __EPW_COMMAND_H__
+#define __EPW_COMMAND_H__
 
 
 #ifdef __cplusplus
