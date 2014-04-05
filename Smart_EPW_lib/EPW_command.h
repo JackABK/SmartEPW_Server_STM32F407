@@ -3,7 +3,7 @@
   Copyright (C), 2001-2011, DCN Co., Ltd.
 
  ******************************************************************************
- File Name     : car_command.h
+ File Name     : EPW_command.h
 Version       : Initial Draft
 Author        : JackABK
 Created       : 2014/1/31
@@ -63,6 +63,7 @@ enum _EPW_Info_issue {
     EPW_ACTUATOR_LIMIT_SWITCH_B,
     EPW_LEFT_RPM,
     EPW_RIGHT_RPM,
+    EPW_INFO_INDEX_AMOUNT
 };
 
 /* commands which can be send to the output plugin */
