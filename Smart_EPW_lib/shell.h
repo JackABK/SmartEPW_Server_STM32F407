@@ -12,7 +12,7 @@
 #define __SHELL_H__
 
 extern void receive_task(void *p);
-
+extern void send_out_task(void * p);
 
 /*determine yes or no reatch the MAX_STRLEN  */
 extern uint8_t Receive_String_Ready;
