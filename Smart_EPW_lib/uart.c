@@ -77,7 +77,7 @@ void init_USART3(uint32_t baurate){
 		 * to jump to the USART3_IRQHandler() function
 		 * if the USART3 receive interrupt occurs
 		 */
-		USART_ITConfig(USART3, USART_IT_RXNE, ENABLE); // enable the USART1 receive interrupt 
+		USART_ITConfig(USART3, USART_IT_RXNE, ENABLE); // enable the USART3 receive interrupt 
 
 		NVIC_InitStructure.NVIC_IRQChannel = USART3_IRQn;                 // we want to configure the USART1 interrupts
 		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;// this sets the priority group of the USART1 interrupts
