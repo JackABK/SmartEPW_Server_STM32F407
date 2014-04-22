@@ -402,7 +402,7 @@ void parse_EPW_motor_dir(unsigned char DIR_cmd)
 
 void PerformCommand(unsigned char group,unsigned char control_id, unsigned char value)
 {
-   if(group == ACCEPT_EPW_CMD){ /*0*/
+   if(group == OUT_EPW_CMD){ /*0*/
 		switch ( control_id )
 		{
 		    case EPW_MOTOR_DIR:
@@ -429,36 +429,6 @@ void PerformCommand(unsigned char group,unsigned char control_id, unsigned char 
                  Kd = (float)value;
 		         InitPID(&PID_Motor_R , Kp, Ki, Kd/10.0f);
 		        break;
-		    default:
-		        ;
-		}
-   }else if(group == SEND_EPW_INFO) { /*1*/
-        switch ( control_id )
-		{
-		    case EPW_ULTRASONIC_0 :
-		        
-		        break;
-		    case EPW_ULTRASONIC_1 :
-		        
-		        break;
-		    case EPW_ULTRASONIC_2 :
-		        
-		        break;
-		    case EPW_ULTRASONIC_3 :
-		        
-		        break;
-		    case EPW_ACTUATOR_LIMIT_SWITCH_A:
-		        
-		        break;
-            case EPW_ACTUATOR_LIMIT_SWITCH_B:
-		        
-		        break;
-            case EPW_LEFT_RPM:
-		        
-		        break;
-            case EPW_RIGHT_RPM:
-		        
-		        break; 
 		    default:
 		        ;
 		}
