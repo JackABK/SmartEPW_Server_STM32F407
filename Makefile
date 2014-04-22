@@ -80,6 +80,8 @@ SRC+=transfer.c
 SRC+=PID.c
 SRC+=unit_tests.c
 SRC+=linear_actuator.c
+SRC+=delay.c
+
 
 # FreeRTOS Source Files
 SRC+=port.c
