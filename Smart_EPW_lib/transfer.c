@@ -14,7 +14,7 @@
 #include "EPW_command.h"
 
 
-extern rpm_left_motor,rpm_right_motor;
+extern float rpm_left_motor,rpm_right_motor;
 
 /*============================================================================*
  ** Prototype    : receive_task
@@ -52,21 +52,22 @@ void receive_task(void *p)
 		}
 }
 
-#define SEND_OUT_PERIOD 100 /*ms*/
+#define SEND_OUT_PERIOD 500 /*ms*/
 void send_out_task(void *p){
-    cmd_group EPW_cmd_group = SEND_EPW_INFO;
-    EPW_Info_issue send_out_EPW_info_id = EPW_ULTRASONIC_0; /*first member of info.*/
+    cmd_group EPW_cmd_group = OUT_EPW_CMD;
     int i;
-
     while(1){
-        printf("cmd%c%c%cend",EPW_cmd_group,send_out_EPW_info_id++,(unsigned char)Get_CH1Distance() );
-        printf("cmd%c%c%cend",EPW_cmd_group,send_out_EPW_info_id++,(unsigned char)Get_CH2Distance() );
-        printf("cmd%c%c%cend",EPW_cmd_group,send_out_EPW_info_id++,(unsigned char)Get_CH3Distance() );
-        printf("cmd%c%c%cend",EPW_cmd_group,send_out_EPW_info_id++,(unsigned char)Get_CH4Distance() );
-        //printf("cmd%c%c%cend",EPW_cmd_group,send_out_EPW_info_id++, ); /*the actuatorA of limit switch state*/
-        //printf("cmd%c%c%cend",EPW_cmd_group,send_out_EPW_info_id++, ); /*the actuatorB of limit switch state*/
-        printf("cmd%c%c%cend",EPW_cmd_group,send_out_EPW_info_id++, (unsigned char)rpm_left_motor);
-        printf("cmd%c%c%cend",EPW_cmd_group,send_out_EPW_info_id, (unsigned char)rpm_right_motor);
+        printf("cmd%c%c%cend",EPW_cmd_group,EPW_ULTRASONIC_0,(unsigned char)Get_CH1Distance() );
+        printf("cmd%c%c%cend",EPW_cmd_group,EPW_ULTRASONIC_1,(unsigned char)Get_CH2Distance() );        
+        printf("cmd%c%c%cend",EPW_cmd_group,EPW_ULTRASONIC_2,(unsigned char)Get_CH3Distance() );        
+        printf("cmd%c%c%cend",EPW_cmd_group,EPW_ULTRASONIC_3,(unsigned char)Get_CH4Distance() );        
+        //printf("cmd%c%c%cend",EPW_cmd_group,EPW_ACTUATOR_LIMIT_SWITCH_A, ); /*the actuatorA of limit switch state*/
+        //printf("cmd%c%c%cend",EPW_cmd_group,EPW_ACTUATOR_LIMIT_SWITCH_B, ); /*the actuatorB of limit switch state*/
+        printf("cmd%c%c%cend",EPW_cmd_group,EPW_LEFT_RPM, (unsigned char)rpm_left_motor);        
+        printf("cmd%c%c%cend",EPW_cmd_group,EPW_RIGHT_RPM, (unsigned char)rpm_right_motor);
+  
+        fflush(0);/*force clear buffer and send out the other device. */
+        
         vTaskDelay(SEND_OUT_PERIOD);
     }
 }
