@@ -202,11 +202,24 @@ void vApplicationStackOverflowHook(xTaskHandle pxTask, signed char *pcTaskName) 
 int main(void) {
 
 		uint8_t ret = pdFALSE;
+        /*init.*/
 		NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 		init_USART3(9600);
 		init_LED();
 		init_car();
         init_linear_actuator();
+
+        /*unit testing.*/
+        if(unit_tests_task()){ /*unit tests not pass. */
+           GPIO_WriteBit(GPIOD,GPIO_Pin_12,SET); 
+           return 0;
+        }else{ /*unit tests passed */
+           /*response the success state to user. */
+           GPIO_WriteBit(GPIOD,GPIO_Pin_14,SET);
+           delay(3000);
+           GPIO_WriteBit(GPIOD,GPIO_Pin_14,RESET);
+        }
+        
 
 		/*create the task. */         
 		ret = xTaskCreate(tesing_task, "test task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
@@ -220,8 +233,10 @@ int main(void) {
 				// --TODO blink some LEDs to indicates fatal system error
 		}
 
+
 		for (;;);
 
+        return 0;
 }
 
 
