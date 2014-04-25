@@ -15,7 +15,7 @@ Face a problem
 Resolution
 ===========
 
-* We could not to use the Shark's driver and joystick, just buy the universal driver, and only given the analog        voltage, so we using pwm signal complete the basic control.
+* We could not use the Shark's driver and joystick, just buy the universal driver, and only given the analog        voltage, so we using pwm signal complete the basic control.
 
 * Because our case cannot use the joystick to control EPW, so we use the mouth control switch through morse code       (developed over the past), and display to the tablet PC or smart phone based on android system.
 
