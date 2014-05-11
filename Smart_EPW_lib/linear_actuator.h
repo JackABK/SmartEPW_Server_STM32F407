@@ -28,10 +28,10 @@
  *Limit Switch
  */
 #define LS_READ_PORT							GPIOC
-#define LS_A_UPPER_PIN							GPIO_Pin_1
-#define LS_A_LOWER_PIN							GPIO_Pin_2
-#define LS_B_UPPER_PIN							GPIO_Pin_3
-#define LS_B_LOWER_PIN							GPIO_Pin_4
+#define LS_A_UPPER_PIN							GPIO_Pin_0
+#define LS_A_LOWER_PIN							GPIO_Pin_1
+#define LS_B_UPPER_PIN							GPIO_Pin_2
+#define LS_B_LOWER_PIN							GPIO_Pin_3
 enum{
 	STOP,
 	CW,
