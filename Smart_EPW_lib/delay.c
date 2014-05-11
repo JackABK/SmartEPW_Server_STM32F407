@@ -8,16 +8,17 @@
   *============================================================================*/
 #include "stm32f4xx.h"
 
-void delay(uint32_t ms) {
-		ms *= 3360;
-		while(ms--) {
-				__NOP();
-		}
+void delay(u32 ms) {
+    ms *= 12000;
+    while(ms--) {
+        __NOP();
+    }
 }
 
-void delay_us(uint32_t us) {
-		us *= 3;
-		while(us--) {
-				__NOP();
-		}
+
+void delay_us(u32 us) {
+    us *= 12;
+    while(us--) {
+        __NOP();
+    }
 }
