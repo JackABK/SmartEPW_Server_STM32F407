@@ -222,6 +222,7 @@ void init_car(){
         init_motor_CWCCW();
         init_encoder();
 		init_External_Interrupt();
+        
 
 		carTimers=xTimerCreate("Car_State_Polling",	 ( CAR_POLLING_PERIOD), pdTRUE, ( void * ) 1,  Car_State_Polling );
 		xTimerStart( carTimers, 0 );
@@ -256,8 +257,8 @@ void init_car(){
 void Car_State_Polling(){
 		static int count=0;
         unsigned int distance[4];
-        distance[0]=Get_CH1Distance();
-        distance[1]=Get_CH2Distance();
+        //distance[0]=Get_CH1Distance();
+        //distance[1]=Get_CH2Distance();
         //distance[2]=Get_CH3Distance();
         //distance[3]=Get_CH4Distance();
         
@@ -450,7 +451,6 @@ void PID_Algorithm_Polling(void)
 		detachInterrupt(EXTI_Line0); /*close external interrupt 0*/ 
 		detachInterrupt(EXTI_Line1); /*close external interrupt 1*/ 
         float temp ;
-        static int output_info_count = 0 ;
         /*get the two motor parameter such as RPM, Rotations..*/
         getMotorData();
 
@@ -469,6 +469,8 @@ void PID_Algorithm_Polling(void)
 
         encoder_left_counter = 0;   
         encoder_right_counter = 0; 
+
+        
 
 		/*restart enable the external interrupt*/
 		attachInterrupt(EXTI_Line0); 
