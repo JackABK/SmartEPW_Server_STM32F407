@@ -11,7 +11,6 @@
 #include "PID.h"
 
 
-
 #define CAR_POLLING_PERIOD  20//unit : ms
 #define PID_POLLING_PERIOD  20//unit : ms
 
@@ -39,11 +38,11 @@ pid_struct PID_Motor_R;
 
 
 /*encoder_left  variable.  setting*/
- float rpm_left_motor = 0.0f;
-static int encoder_left_counter;
+float rpm_left_motor = 0.0f;
+int encoder_left_counter;
 /*encoder_right  variable  setting*/
- float rpm_right_motor = 0.0f;
-static int encoder_right_counter;
+float rpm_right_motor = 0.0f;
+int encoder_right_counter;
 
 static float set_rpm=300.0f;
 
@@ -223,7 +222,6 @@ void init_car(){
         init_motor_CWCCW();
         init_encoder();
 		init_External_Interrupt();
-		ultra_sound_init();
 
 		carTimers=xTimerCreate("Car_State_Polling",	 ( CAR_POLLING_PERIOD), pdTRUE, ( void * ) 1,  Car_State_Polling );
 		xTimerStart( carTimers, 0 );

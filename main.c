@@ -49,14 +49,13 @@
 		}DISTANCE_INFO_STRU;
 DISTANCE_INFO_STRU distance_info_CH1;
 void tesing_task(void* p) { 
-		printf("Start testing the distance measure .\n");
         int i = 0;
 		
         struct limit_switch_info actuator_LS_state;
 		/* initial two linear actuator*/
 		//set_linearActuator_A_cmd(CW, 255);
 		//vTaskDelay(10000);
-
+#if 0
         set_linearActuator_A_cmd(CCW , 255);
         vTaskDelay(1000);
     
@@ -86,21 +85,9 @@ void tesing_task(void* p) {
 				vTaskDelay(500);
 				//printf("%d\n" ,get_LimitSwitch_A_upper_Vt());
 		}
-     
-                   
-        #if 0
-        /*testing multi-ch by ADC.*/
-        while(1){
-            printf("ADC0: %d\r\n" ,get_LimitSwitch_Vt(0,0));
-            printf("ADC1: %d\r\n" ,get_LimitSwitch_Vt(0,1));
-            //printf("ADC2: %d\r\n" ,get_LimitSwitch_Vt(1,0));
-            //printf("ADC3: %d\r\n" ,get_LimitSwitch_Vt(1,1));
-            printf("-----------ADC Testing---------------\r\n");
-            vTaskDelay(1000);
-        }
-        #endif
-        
-        #if 0
+#endif
+
+#if 0
 		for (;;) {
 				/*check out the system is not crash */
 				//GPIO_ToggleBits(GPIOD,GPIO_Pin_12);
@@ -128,14 +115,33 @@ void tesing_task(void* p) {
 				}
 				else{
 						distance_info_CH1.avg  =  round( (float)distance_info_CH1.avg / 3.0f);
-						//printf("%ld %ld %ld %ld\n\r",distance_avg_1,Get_CH2Distance() ,Get_CH3Distance(),Get_CH4Distance() );
-						//printf("%ld\n\r",distance_avg_1);
+						//printf("%ld %ld %ld %ld\n\r",distance_avg_1,Get_CH1Distance() ,Get_CH2Distance(),Get_CH3Distance() );
+						printf("%ld\n\r",distance_info_CH1.avg);
 
 						distance_info_CH1.counter=0;
 						distance_info_CH1.avg = 0;
 				}
+				vTaskDelay(500);
 		}
-        #endif
+#endif
+
+#if 0
+        if (SysTick_Config(SystemCoreClock / 1000))
+        { 
+            /* Capture error */ 
+            while (1);
+        }
+#endif
+
+//#if 0
+        /*check the delay function is correct.*/
+        int cnt=0;
+        while(1){
+            //GPIO_ToggleBits(GPIOD,GPIO_Pin_14);                                                                                                                                                                                    
+            delay_us(10000);
+            printf("%d %d %d %d\r\n",Get_CH1Distance(),Get_CH2Distance(),Get_CH3Distance(),Get_CH4Distance());
+        }
+//#endif    
 		vTaskDelete(NULL);
 }
 
