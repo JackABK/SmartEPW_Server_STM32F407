@@ -210,7 +210,7 @@ int main(void) {
 		uint8_t ret = pdFALSE;
         /*init.*/
 		NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
-		init_USART3(9600);
+		init_USART3(115200);
 		init_LED();
 		init_car();
         init_linear_actuator();
