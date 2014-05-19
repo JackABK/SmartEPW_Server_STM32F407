@@ -133,7 +133,7 @@ void tesing_task(void* p) {
         }
 #endif
 
-//#if 0
+#if 0
         /*check the delay function is correct.*/
         int cnt=0;
         while(1){
@@ -141,7 +141,7 @@ void tesing_task(void* p) {
             delay_us(10000);
             printf("%d %d %d %d\r\n",Get_CH1Distance(),Get_CH2Distance(),Get_CH3Distance(),Get_CH4Distance());
         }
-//#endif    
+#endif    
 		vTaskDelete(NULL);
 }
 
@@ -212,33 +212,34 @@ int main(void) {
 		NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
 		init_USART3(9600);
 		init_LED();
+		ultra_sound_init();
 		init_car();
-        init_linear_actuator();
+        //init_linear_actuator();
 
         /*unit testing.*/
         if(unit_tests_task()){ /*unit tests not pass. */
-           GPIO_WriteBit(GPIOD,GPIO_Pin_12,SET); 
+           GPIO_WriteBit(GPIOD,GPIO_Pin_14,SET); 
            return 0;
         }else{ /*unit tests passed */
            /*response the success state to user. */
-           GPIO_WriteBit(GPIOD,GPIO_Pin_14,SET);
-           delay(3000);
-           GPIO_WriteBit(GPIOD,GPIO_Pin_14,RESET);
+           GPIO_WriteBit(GPIOD,GPIO_Pin_12,SET);
+           delay(1000);
+           GPIO_WriteBit(GPIOD,GPIO_Pin_12,RESET);
         }
-        
 
 		/*create the task. */         
+        printf("Task creating...........\r\n");
 		ret = xTaskCreate(tesing_task, "test task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
-		ret &= xTaskCreate(receive_task, "receive command task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
+        ret &= xTaskCreate(receive_task, "receive command task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
 		ret &= xTaskCreate(send_out_task, "send out information task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
 		if (ret == pdTRUE) {
-				printf("System Started!\n");
+				printf("All tasks are created.\r\n");
+                printf("System Started!\r\n");
 				vTaskStartScheduler();  // should never return
 		} else {
-				printf("System Error!\n");
+				printf("System Error!\r\n");
 				// --TODO blink some LEDs to indicates fatal system error
 		}
-
 
 		for (;;);
 
