@@ -9,6 +9,7 @@ TOOLCHAIN_PREFIX:=arm-none-eabi
 OPTLVL:=0
 DBG:=-g
 L298N_MODE:= -DL298N_MODE
+DEBUG_MODE:= -DDEBUG_MODE
 OUTPUT_EPW_INFO:= -DOUTPUT_EPW_INFO
 
 FREERTOS:=$(CURDIR)/FreeRTOS
@@ -71,7 +72,6 @@ SRC+=example.c
 
 
 #SmartEPW_lib
-SRC+=ultrasound.c
 SRC+=EPW_behavior.c
 SRC+=EPW_command.c
 SRC+=uart.c
@@ -81,6 +81,7 @@ SRC+=PID.c
 SRC+=unit_tests.c
 SRC+=linear_actuator.c
 SRC+=delay.c
+SRC+=ultrasound.c
 
 
 # FreeRTOS Source Files
@@ -115,7 +116,7 @@ CDEFS+=-D__FPU_PRESENT=1
 CDEFS+=-D__FPU_USED=1
 CDEFS+=-DARM_MATH_CM4
 CDEFS+=$(L298N_MODE)
-#CDEFS+=$(OUTPUT_EPW_INFO)
+CDEFS+=$(DEBUG_MODE)
 
 MCUFLAGS=-mcpu=cortex-m4 -mthumb -mfloat-abi=hard
 COMMONFLAGS=-O$(OPTLVL) $(DBG)  -Wall
