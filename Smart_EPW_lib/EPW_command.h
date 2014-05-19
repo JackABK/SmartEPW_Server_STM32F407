@@ -21,11 +21,6 @@ Modification: Created file
 #define __EPW_COMMAND_H__
 
 
-#ifdef __cplusplus
-#if __cplusplus
-extern "C"{
-#endif
-#endif /* __cplusplus */
 
 extern inline void backward_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right);
 extern inline void forward_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right);
@@ -36,8 +31,7 @@ extern void proc_cmd(char *cmd , uint32_t SpeedValue_left , uint32_t SpeedValue_
 
 
 /* EPW control issue */
-typedef enum _EPW_Control_issue EPW_Control_issue;
-enum _EPW_Control_issue {
+enum _EPW_Control_id {
     EPW_MOTOR_DIR = 100, 
     EPW_MOTOR_PWM,
     EPW_ACTUATOR_A,
@@ -50,10 +44,11 @@ enum _EPW_Control_issue {
     EPW_Servo_0,
     EPW_Servo_1,
 };
+typedef enum _EPW_Control_id EPW_Control_id;
+
 
 /* EPW info issue */
-typedef enum _EPW_Info_issue EPW_Info_issue;
-enum _EPW_Info_issue {
+enum _EPW_Info_id {
     EPW_ULTRASONIC_0 =200,        
     EPW_ULTRASONIC_1,
     EPW_ULTRASONIC_2,
@@ -63,6 +58,8 @@ enum _EPW_Info_issue {
     EPW_LEFT_RPM,
     EPW_RIGHT_RPM,
 };
+typedef enum _EPW_Info_id EPW_Info_id;
+
 
 /* commands which can be send to the output plugin */
 typedef enum _cmd_group cmd_group;
@@ -72,12 +69,6 @@ enum  _cmd_group {
 };
 
 
-/* this a chip set ing eintldkoe, ithkoe , dksods . */
-#ifdef __cplusplus
-#if __cplusplus
-}
-#endif
-#endif /* __cplusplus */
 
 
 #endif /* __CAR_COMMAND_H__ */

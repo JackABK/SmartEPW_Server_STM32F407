@@ -15,6 +15,7 @@
 
 
 extern float rpm_left_motor,rpm_right_motor;
+extern int encoder_left_counter,encoder_right_counter;
 
 /*============================================================================*
  ** Prototype    : receive_task
@@ -52,23 +53,58 @@ void receive_task(void *p)
 		}
 }
 
-#define SEND_OUT_PERIOD 500 /*ms*/
+#define SEND_OUT_PERIOD 1000 /*ms*/
+#define DECLARE_EPW_INFO(info_name, info_id, info_value) {.name=info_name, .id=info_id, .value=info_value}
+
 void send_out_task(void *p){
     cmd_group EPW_cmd_group = OUT_EPW_CMD;
     int i;
+    unsigned char distance_cm[4]={0};
+    unsigned char motor_L_rpm=0,motor_R_rpm=0;
+    EPW_info  EPW_info_list[] = {                                         
+        DECLARE_EPW_INFO("ultrasonic 0" , EPW_ULTRASONIC_0 , distance_cm),
+        DECLARE_EPW_INFO("ultrasonic 1" , EPW_ULTRASONIC_1 , distance_cm+1),
+        DECLARE_EPW_INFO("ultrasonic 2" , EPW_ULTRASONIC_2 , distance_cm+2),
+        DECLARE_EPW_INFO("ultrasonic 3" , EPW_ULTRASONIC_3 , distance_cm+3),
+        DECLARE_EPW_INFO("EPW_LEFT_RPM" , EPW_LEFT_RPM , &motor_L_rpm),
+        DECLARE_EPW_INFO("EPW_RIGHT_RPM", EPW_RIGHT_RPM ,&motor_R_rpm)
+    };
+   
     while(1){
-        printf("cmd%c%c%cend",EPW_cmd_group,EPW_ULTRASONIC_0,(unsigned char)Get_CH1Distance() );
-        printf("cmd%c%c%cend",EPW_cmd_group,EPW_ULTRASONIC_1,(unsigned char)Get_CH2Distance() );        
-        printf("cmd%c%c%cend",EPW_cmd_group,EPW_ULTRASONIC_2,(unsigned char)Get_CH3Distance() );        
-        printf("cmd%c%c%cend",EPW_cmd_group,EPW_ULTRASONIC_3,(unsigned char)Get_CH4Distance() );        
+        /*update the new value*/
+        distance_cm[0]=(unsigned char)Get_CH1Distance();
+        distance_cm[1]=(unsigned char)Get_CH2Distance();
+        distance_cm[2]=(unsigned char)Get_CH3Distance();
+        distance_cm[3]=(unsigned char)Get_CH4Distance();
+        motor_L_rpm=(unsigned char)rpm_left_motor;
+        motor_R_rpm=(unsigned char)rpm_right_motor;
+
+        
+#ifdef DEBUG_MODE
+        printf("----------------------Debug mode-------------------------------\r\n");
+        for(i=0;i<sizeof(EPW_info_list)/sizeof(EPW_info);i++){
+            printf("EPW_issue name:%s   EPW_issue_id:%d EPW_issue_value:%d\r\n",EPW_info_list[i].name,EPW_info_list[i].id, *(EPW_info_list[i].value));
+        }
+        printf("---------------------End of debug mode-------------------------\r\n\r\n\r\n");
+        
+        printf("%d %d %d %d  encoder counter: %d %d\r\n",distance_cm[0],distance_cm[1],distance_cm[2],distance_cm[3],encoder_left_counter,encoder_right_counter);
+        
+#else 
+        printf("cmd%c%c%cend",EPW_cmd_group,EPW_ULTRASONIC_0,distance_cm[0] );
+        printf("cmd%c%c%cend",EPW_cmd_group,EPW_ULTRASONIC_1,distance_cm[1] );        
+        printf("cmd%c%c%cend",EPW_cmd_group,EPW_ULTRASONIC_2,distance_cm[2] );        
+        printf("cmd%c%c%cend",EPW_cmd_group,EPW_ULTRASONIC_3,distance_cm[3] );        
         //printf("cmd%c%c%cend",EPW_cmd_group,EPW_ACTUATOR_LIMIT_SWITCH_A, ); /*the actuatorA of limit switch state*/
         //printf("cmd%c%c%cend",EPW_cmd_group,EPW_ACTUATOR_LIMIT_SWITCH_B, ); /*the actuatorB of limit switch state*/
         printf("cmd%c%c%cend",EPW_cmd_group,EPW_LEFT_RPM, (unsigned char)rpm_left_motor);        
         printf("cmd%c%c%cend",EPW_cmd_group,EPW_RIGHT_RPM, (unsigned char)rpm_right_motor);
-  
-        fflush(0);/*force clear buffer and send out the other device. */
         
+        fflush(0);/*force clear buffer and send out the other device. */
+
+#endif
         vTaskDelay(SEND_OUT_PERIOD);
+
+
     }
 }
 

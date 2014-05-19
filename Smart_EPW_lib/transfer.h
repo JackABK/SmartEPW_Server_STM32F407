@@ -10,6 +10,8 @@
 
 #ifndef __TRANSFER_H__
 #define __TRANSFER_H__
+#include "EPW_command.h"
+#include "stm32f4xx.h"
 
 extern void receive_task(void *p);
 extern void send_out_task(void * p);
@@ -26,6 +28,13 @@ static struct   receive_cmd_list{
         unsigned char value;
 };
 #pragma pack()     
+
+/*list of the EPW information structure*/
+typedef struct{
+    char * name;
+    EPW_Info_id id;
+    unsigned char *value;
+}EPW_info;
 
 /* USART receive command and pwm value*/
 /*should be to define to main.h or uart.h*/
