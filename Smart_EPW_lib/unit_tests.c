@@ -20,28 +20,24 @@ static char * test_bar() {
      return 0;
 }
 
-static char * test_ultrasonic(){
-     assert("error, ultrasonic right non value", Get_CH1Distance() != 0);
-     return 0;
-}
+
 static char * all_tests() {
        run_test(test_foo);
-     //run_test(test_ultrasonic);
-     return 0;
+       return 0;
 }
 
 
  
 int unit_tests_task(void){
-     printf("=============TESTS UNIT STARTING=============\n");
+     printf("=============TESTS UNIT STARTING=============\r\n");
      char *result = all_tests();
+     printf("Tests run: %d\r\n", tests_run_cnt);
      if (result != 0) {
-         printf("%s\n", result);
+         printf("%s\r\n", result);
      }
      else {
-         printf("=============ALL TESTS PASSED=============\n");
+         printf("============ALL TESTS PASSED============\r\n");
      }
-     printf("Tests run: %d\n", tests_run_cnt);
  
      return result != 0;
 }
