@@ -32,4 +32,4 @@ STM32F4-Discovery-FreeRTOS
 Client
 =========
 
-* The client is developed by Android Apps, See https://github.com/JackABK
+* The client is developed by Android Apps, See https://github.com/JackABK/SmartEPW_Android_App
