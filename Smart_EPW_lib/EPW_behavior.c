@@ -349,7 +349,6 @@ void Car_State_Polling(){
 /*============================================================================*/
 void parse_EPW_motor_dir(unsigned char DIR_cmd)
 {
-       
 		if(DIR_cmd == 'f'){
 				car_state = CAR_STATE_MOVE_FORWARD;
 				encoder_left_counter=0;
