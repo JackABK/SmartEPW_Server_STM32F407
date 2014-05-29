@@ -27,3 +27,9 @@ STM32F4-Discovery-FreeRTOS
 ============================
 
 * This project is based on A demo of FreeRTOS running on a STM32F4 Discovery                                           board([STM32F4-FreeRTOS](https://github.com/wangyeee/STM32F4-FreeRTOS)).
+
+
+Client
+=========
+
+* The client is developed by Android Apps, See https://github.com/JackABK/SmartEPW_Android_App
