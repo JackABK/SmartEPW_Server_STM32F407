@@ -43,9 +43,7 @@ inline void forward_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right){
 		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN4_PIN,Bit_RESET);  /* 0 */
         TIM_SetCompare2(TIM4, SpeedValue_left);    
 		TIM_SetCompare4(TIM4, SpeedValue_right);
-#else
-		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_CWCCW_PIN,Bit_RESET);  /* 0 */       
-		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_CWCCW_PIN,Bit_RESET);  /* 0 */ 
+#else ifdef SMART_EPW_MODE
         TIM_SetCompare2(TIM4, SpeedValue_left);    
 		TIM_SetCompare4(TIM4, SpeedValue_right);
 #endif
@@ -58,12 +56,10 @@ inline void stop_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right){
 		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN4_PIN,Bit_RESET);  /* 0 */
         TIM_SetCompare2(TIM4, 0);    
 		TIM_SetCompare4(TIM4, 0);
-#else
-		/*stop will be always zero.**/
-        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_CWCCW_PIN,Bit_RESET);  /* 0 */       
-		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_CWCCW_PIN,Bit_RESET);  /* 0 */ 
-		TIM_SetCompare2(TIM4, 0);    
-		TIM_SetCompare4(TIM4, 0);
+#else ifdef SMART_EPW_MODE
+		/*the idle mode of motor driver is between 2.18~2.81 Volt, so set to 2.5 Volt*/
+		TIM_SetCompare2(TIM4, 127);    
+		TIM_SetCompare4(TIM4, 127);
 #endif
 }
 inline void backward_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right){
@@ -74,9 +70,7 @@ inline void backward_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right){
 		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN4_PIN,Bit_SET);    /* 1 */
         TIM_SetCompare2(TIM4, SpeedValue_left);    
 		TIM_SetCompare4(TIM4, SpeedValue_right);
-#else
-        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_CWCCW_PIN,Bit_SET);  /* 1 */       
-		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_CWCCW_PIN,Bit_SET); /* 1 */ 
+#else ifdef SMART_EPW_MODE
         TIM_SetCompare2(TIM4, SpeedValue_left);    
 		TIM_SetCompare4(TIM4, SpeedValue_right);
 #endif
@@ -89,10 +83,7 @@ inline void left_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right){
 		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN4_PIN,Bit_RESET);    /* 0 */
         TIM_SetCompare2(TIM4, SpeedValue_left);    
 		TIM_SetCompare4(TIM4, SpeedValue_right);
-#else
-        /*different to two motor, right of the CW and left of the CCW*/        
-        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_CWCCW_PIN,Bit_SET);   /* 1 */      
-		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_CWCCW_PIN,Bit_RESET); /* 0 */ 
+#else ifdef SMART_EPW_MODE
         TIM_SetCompare2(TIM4, SpeedValue_left);
 		TIM_SetCompare4(TIM4, SpeedValue_right);
 #endif   
@@ -105,12 +96,9 @@ inline void right_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right){
 		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN4_PIN,Bit_SET);      /* 1 */
         TIM_SetCompare2(TIM4, SpeedValue_left);    
 		TIM_SetCompare4(TIM4, SpeedValue_right);
-#else
-		/*different to two motor, left of the CW and right of the CCW*/
-        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_CWCCW_PIN,Bit_RESET);  /* 0 */      
-		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_CWCCW_PIN,Bit_SET);   /* 1 */
+#else ifdef SMART_EPW_MODE
         TIM_SetCompare2(TIM4, SpeedValue_left);
-		TIM_SetCompare4(TIM4, SpeedValue_right);
+        TIM_SetCompare4(TIM4, SpeedValue_right);
 #endif
 }
 /* ======================End of the Control Function===================== */
