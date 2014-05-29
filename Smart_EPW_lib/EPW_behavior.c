@@ -382,8 +382,8 @@ void parse_EPW_motor_dir(unsigned char DIR_cmd)
                 car_state = CAR_STATE_MOVE_LEFT;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
-				SpeedValue_left = (int)motor_pwm_value ; 
-				SpeedValue_right=SpeedValue_left;
+				SpeedValue_left = round((float)motor_pwm_value/2.0f); 
+				SpeedValue_right=(int)motor_pwm_value;
 				proc_cmd("left" , SpeedValue_left , SpeedValue_right);
 		}
         else if(DIR_cmd == 'r'){
@@ -391,7 +391,7 @@ void parse_EPW_motor_dir(unsigned char DIR_cmd)
 				encoder_left_counter=0;
 				encoder_right_counter=0;
 				SpeedValue_left = (int)motor_pwm_value ; 
-				SpeedValue_right=SpeedValue_left;
+				SpeedValue_right=round((float)motor_pwm_value/2.0f);
 				proc_cmd("right" , SpeedValue_left , SpeedValue_right);
 		}
 		else{
@@ -454,16 +454,16 @@ void PID_Algorithm_Polling(void)
         /*get the two motor parameter such as RPM, Rotations..*/
         getMotorData();
 
-        /*calculate Position PID of two motor*/    
-        SpeedValue_right = (int)PID_Pos_Calc(&PID_Motor_R , rpm_left_motor , rpm_right_motor);
-
-
-
+        
 		/*restart motor calibration and re-count encoder count*/
 		if(car_state == CAR_STATE_MOVE_FORWARD){
+                /*calculate Position PID of two motor*/    
+                SpeedValue_right = (int)PID_Pos_Calc(&PID_Motor_R , rpm_left_motor , rpm_right_motor);
 				proc_cmd("forward" , SpeedValue_left , SpeedValue_right);
 		}
 		else if(car_state == CAR_STATE_MOVE_BACK) {
+                /*calculate Position PID of two motor*/    
+                SpeedValue_right = (int)PID_Pos_Calc(&PID_Motor_R , rpm_left_motor , rpm_right_motor);
 				proc_cmd("backward" , SpeedValue_left , SpeedValue_right);
 		}
 
