@@ -22,12 +22,12 @@ Modification: Created file
 
 
 
-extern inline void backward_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right);
-extern inline void forward_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right);
-extern inline void left_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right);
-extern inline void right_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right);
-extern inline void stop_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right);
-extern void proc_cmd(char *cmd , uint32_t SpeedValue_left , uint32_t SpeedValue_right );
+extern inline void backward_cmd(uint32_t pwm_value_left , uint32_t pwm_value_right);
+extern inline void forward_cmd(uint32_t pwm_value_left , uint32_t pwm_value_right);
+extern inline void left_cmd(uint32_t pwm_value_left , uint32_t pwm_value_right);
+extern inline void right_cmd(uint32_t pwm_value_left , uint32_t pwm_value_right);
+extern inline void stop_cmd(uint32_t pwm_value_left , uint32_t pwm_value_right);
+extern void proc_cmd(char *cmd , uint32_t pwm_value_left , uint32_t pwm_value_right );
 
 
 /* EPW control issue */

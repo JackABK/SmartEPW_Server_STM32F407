@@ -7,7 +7,7 @@
 
 
 
-typedef void cmd_func(uint32_t SpeedValue_left , uint32_t SpeedValue_right);
+typedef void cmd_func(uint32_t pwm_value_left , uint32_t pwm_value_right);
 typedef struct{
 		char * cmd_name ;
 		char * desc;
@@ -35,20 +35,20 @@ static cmd_list  motor_cmds_table[] = {
  * In2 is used by PWM signal, the In1 = In2 is stop motion when Enable_A is pull high.  
  * 
  */
-inline void forward_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right){  
+inline void forward_cmd(uint32_t pwm_value_left , uint32_t pwm_value_right){  
 #ifdef L298N_MODE
         GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_IN1_PIN,Bit_SET);  /* 1 */       
 		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_IN2_PIN,Bit_RESET);  /* 0 */
         GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN3_PIN,Bit_SET);  /* 1 */       
 		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN4_PIN,Bit_RESET);  /* 0 */
-        TIM_SetCompare2(TIM4, SpeedValue_left);    
-		TIM_SetCompare4(TIM4, SpeedValue_right);
-#else ifdef SMART_EPW_MODE
-        TIM_SetCompare2(TIM4, SpeedValue_left);    
-		TIM_SetCompare4(TIM4, SpeedValue_right);
+        TIM_SetCompare2(TIM4, pwm_value_left);    
+		TIM_SetCompare4(TIM4, pwm_value_right);
+#else ifdef EPW_DRIVER_MODE
+        TIM_SetCompare2(TIM4, pwm_value_left);    
+		TIM_SetCompare4(TIM4, pwm_value_right);
 #endif
 }
-inline void stop_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right){
+inline void stop_cmd(uint32_t pwm_value_left , uint32_t pwm_value_right){
 #ifdef L298N_MODE
         GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_IN1_PIN,Bit_RESET);  /* 0 */       
 		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_IN2_PIN,Bit_RESET);  /* 0 */
@@ -56,60 +56,60 @@ inline void stop_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right){
 		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN4_PIN,Bit_RESET);  /* 0 */
         TIM_SetCompare2(TIM4, 0);    
 		TIM_SetCompare4(TIM4, 0);
-#else ifdef SMART_EPW_MODE
+#else ifdef EPW_DRIVER_MODE
 		/*the idle mode of motor driver is between 2.18~2.81 Volt, so set to 2.5 Volt*/
 		TIM_SetCompare2(TIM4, 127);    
 		TIM_SetCompare4(TIM4, 127);
 #endif
 }
-inline void backward_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right){
+inline void backward_cmd(uint32_t pwm_value_left , uint32_t pwm_value_right){
 #ifdef L298N_MODE
         GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_IN1_PIN,Bit_RESET);  /* 0 */       
 		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_IN2_PIN,Bit_SET);     /* 1 */
         GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN3_PIN,Bit_RESET);  /* 0 */       
 		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN4_PIN,Bit_SET);    /* 1 */
-        TIM_SetCompare2(TIM4, SpeedValue_left);    
-		TIM_SetCompare4(TIM4, SpeedValue_right);
-#else ifdef SMART_EPW_MODE
-        TIM_SetCompare2(TIM4, SpeedValue_left);    
-		TIM_SetCompare4(TIM4, SpeedValue_right);
+        TIM_SetCompare2(TIM4, pwm_value_left);    
+		TIM_SetCompare4(TIM4, pwm_value_right);
+#else ifdef EPW_DRIVER_MODE
+        TIM_SetCompare2(TIM4, pwm_value_left);    
+		TIM_SetCompare4(TIM4, pwm_value_right);
 #endif
 }
-inline void left_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right){
+inline void left_cmd(uint32_t pwm_value_left , uint32_t pwm_value_right){
 #ifdef L298N_MODE
         GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_IN1_PIN,Bit_RESET);  /* 0 */       
 		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_IN2_PIN,Bit_SET);     /* 1 */
         GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN3_PIN,Bit_SET);  /* 1 */       
 		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN4_PIN,Bit_RESET);    /* 0 */
-        TIM_SetCompare2(TIM4, SpeedValue_left);    
-		TIM_SetCompare4(TIM4, SpeedValue_right);
-#else ifdef SMART_EPW_MODE
-        TIM_SetCompare2(TIM4, SpeedValue_left);
-		TIM_SetCompare4(TIM4, SpeedValue_right);
+        TIM_SetCompare2(TIM4, pwm_value_left);    
+		TIM_SetCompare4(TIM4, pwm_value_right);
+#else ifdef EPW_DRIVER_MODE
+        TIM_SetCompare2(TIM4, pwm_value_left);
+		TIM_SetCompare4(TIM4, pwm_value_right);
 #endif   
 }
-inline void right_cmd(uint32_t SpeedValue_left , uint32_t SpeedValue_right){
+inline void right_cmd(uint32_t pwm_value_left , uint32_t pwm_value_right){
 #ifdef L298N_MODE
         GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_IN1_PIN,Bit_SET);       /* 1 */       
 		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_IN2_PIN,Bit_RESET);     /* 0 */
         GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN3_PIN,Bit_RESET);    /* 0 */       
 		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN4_PIN,Bit_SET);      /* 1 */
-        TIM_SetCompare2(TIM4, SpeedValue_left);    
-		TIM_SetCompare4(TIM4, SpeedValue_right);
-#else ifdef SMART_EPW_MODE
-        TIM_SetCompare2(TIM4, SpeedValue_left);
-        TIM_SetCompare4(TIM4, SpeedValue_right);
+        TIM_SetCompare2(TIM4, pwm_value_left);    
+		TIM_SetCompare4(TIM4, pwm_value_right);
+#else ifdef EPW_DRIVER_MODE
+        TIM_SetCompare2(TIM4, pwm_value_left);
+        TIM_SetCompare4(TIM4, pwm_value_right);
 #endif
 }
 /* ======================End of the Control Function===================== */
 
 
-void proc_cmd(char *cmd , uint32_t SpeedValue_left , uint32_t SpeedValue_right )
+void proc_cmd(char *cmd , uint32_t pwm_value_left , uint32_t pwm_value_right )
 {
 		int i;
 		for (i = 0; i < sizeof(motor_cmds_table)/sizeof(cmd_list); i++) {          
 				if(strncmp(cmd, motor_cmds_table[i].cmd_name , strlen(motor_cmds_table[i].cmd_name)) == 0){
-						motor_cmds_table[i].cmd_func_handler(SpeedValue_left , SpeedValue_right);
+						motor_cmds_table[i].cmd_func_handler(pwm_value_left , pwm_value_right);
 						return;
 				}      
 		}
