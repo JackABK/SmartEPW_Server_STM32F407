@@ -15,6 +15,8 @@
 #define PID_POLLING_PERIOD  20//unit : ms
 
 
+#define MOTOR_CW 0
+#define MOTOR_CCW 1
 
 
 
@@ -47,9 +49,9 @@ int encoder_right_counter;
 static float set_rpm=300.0f;
 
 /*pwm regulate of two motor */
-static int SpeedValue_left; /*default speedvalue*/
-static int SpeedValue_right;
-static int motor_pwm_value=50; /*global pwm value.*/
+static int pwm_value_left=127; /*default pwm value*/
+static int pwm_value_right=127;
+static int motor_speed_value=0; /*global speed value, range is 0~10.
 static char flag;
 
 /*pid alg premeter.*/
@@ -291,14 +293,14 @@ void Car_State_Polling(){
                         break;
                     case 0x01:
                         //need to turn left
-                        //proc_cmd("left" , SpeedValue_left , SpeedValue_right);
+                        //proc_cmd("left" , pwm_value_left , pwm_value_right);
 
                         /*send warning message*/
                         //printf("Left %d %d" , distance[0] , distance[1]);
                         break;
                     case 0x02:
                         //need to turn right
-                        //proc_cmd("right" , SpeedValue_left , SpeedValue_right);
+                        //proc_cmd("right" , pwm_value_left , pwm_value_right);
 
                         /*send warning message*/
                         //printf("Right %d %d" , distance[0] , distance[1]);
@@ -353,50 +355,79 @@ void parse_EPW_motor_dir(unsigned char DIR_cmd)
 				car_state = CAR_STATE_MOVE_FORWARD;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
-				SpeedValue_left = (int)motor_pwm_value; 
-				SpeedValue_right=SpeedValue_left;
-
-				proc_cmd("forward" , SpeedValue_left , SpeedValue_right);
+				pwm_value_left = motor_speed_convert_to_pwm(MOTOR_CW, motor_speed_value); 
+				pwm_value_right=pwm_value_left;
+				proc_cmd("forward" , pwm_value_left , pwm_value_right);
 		}
 		else if(DIR_cmd == 's'){
 				car_state = CAR_STATE_IDLE;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
-
 				/*even stop function is  always zero , but for security, I also set speedvalue to zero.*/
-				SpeedValue_left = 0;
-				SpeedValue_right = 0;
-				proc_cmd("stop" , SpeedValue_left , SpeedValue_right);
+				pwm_value_left = 127;
+				pwm_value_right = 127;
+				proc_cmd("stop" , pwm_value_left , pwm_value_right);
 
 		}
 		else if(DIR_cmd == 'b'){
                 car_state = CAR_STATE_MOVE_BACK;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
-				SpeedValue_left = (int)motor_pwm_value ; 
-				SpeedValue_right=SpeedValue_left;
-				proc_cmd("backward" , SpeedValue_left , SpeedValue_right);
+				pwm_value_left = motor_speed_convert_to_pwm(MOTOR_CCW, motor_speed_value); 
+				pwm_value_right=pwm_value_left;
+				proc_cmd("backward" , pwm_value_left , pwm_value_right);
 		}
         else if(DIR_cmd == 'l'){
                 car_state = CAR_STATE_MOVE_LEFT;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
-				SpeedValue_left = round((float)motor_pwm_value/2.0f); 
-				SpeedValue_right=(int)motor_pwm_value;
-				proc_cmd("left" , SpeedValue_left , SpeedValue_right);
+				pwm_value_left = motor_speed_convert_to_pwm(MOTOR_CCW, motor_speed_value); 
+				pwm_value_right= motor_speed_convert_to_pwm(MOTOR_CW, motor_speed_value); 
+				proc_cmd("left" , pwm_value_left , pwm_value_right);
 		}
         else if(DIR_cmd == 'r'){
                 car_state = CAR_STATE_MOVE_RIGHT;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
-				SpeedValue_left = (int)motor_pwm_value ; 
-				SpeedValue_right=round((float)motor_pwm_value/2.0f);
-				proc_cmd("right" , SpeedValue_left , SpeedValue_right);
+				pwm_value_left = motor_speed_convert_to_pwm(MOTOR_CW, motor_speed_value); 
+				pwm_value_right=motor_speed_convert_to_pwm(MOTOR_CCW, motor_speed_value);
+				proc_cmd("right" , pwm_value_left , pwm_value_right);
 		}
 		else{
 				/*do not anything*/
 		}
 }
+
+
+/*============================================================================*/
+/*============================================================================*
+ ** function : motor_speed_convert_to_pwm
+ ** brief : convert the motor speed value to pwm value based on motor driver.
+ **         motor speed value range is 1~10,
+ **         convert the pwm value by 
+ **           CW : 146~222 
+ **           CCW : 32~108 
+ **         1 speed value convert to 8 pwm scale.
+ ** param : motor_dir, speed_value
+ ** retval : pwm value
+ **============================================================================*/
+/*============================================================================*/
+int motor_speed_convert_to_pwm(int motor_dir, int speed_value){
+    static int pwm_value;
+    switch(motor_dir){
+        case MOTOR_CW: /*pwm range: 146~222*/
+            pwm_value = 146 + speed_value*8;
+            break;
+        case MOTOR_CCW: /*pwm range: 32~108*/
+            pwm_value = 108 - speed_value*8;
+            break;
+    }
+    /*pwm value accept range is 0~255*/
+    if(pwm_value <=0) pwm_value = 0;
+    else if (pwm_value >=255) pwm_value = 255;
+    return pwm_value; ;
+}
+
 
 void PerformCommand(unsigned char group,unsigned char control_id, unsigned char value)
 {
@@ -407,7 +438,8 @@ void PerformCommand(unsigned char group,unsigned char control_id, unsigned char 
 		        parse_EPW_motor_dir(value);
 		        break;
 		    case EPW_MOTOR_PWM:
-		        motor_pwm_value = value; /*0~255*/
+		        motor_speed_value = value; /*0~10 scale*/
+                
 		        break;
 		    case EPW_ACTUATOR_A :
 		        set_linearActuator_A_cmd(value , 255); /*the actuator of pwm_value is fixed, value is dir flag.*/
@@ -457,13 +489,13 @@ void PID_Algorithm_Polling(void)
 		/*restart motor calibration and re-count encoder count*/
 		if(car_state == CAR_STATE_MOVE_FORWARD){
                 /*calculate Position PID of two motor*/    
-                SpeedValue_right = (int)PID_Pos_Calc(&PID_Motor_R , rpm_left_motor , rpm_right_motor);
-				proc_cmd("forward" , SpeedValue_left , SpeedValue_right);
+                pwm_value_right = (int)PID_Pos_Calc(&PID_Motor_R , rpm_left_motor , rpm_right_motor);
+				proc_cmd("forward" , pwm_value_left , pwm_value_right);
 		}
 		else if(car_state == CAR_STATE_MOVE_BACK) {
                 /*calculate Position PID of two motor*/    
-                SpeedValue_right = (int)PID_Pos_Calc(&PID_Motor_R , rpm_left_motor , rpm_right_motor);
-				proc_cmd("backward" , SpeedValue_left , SpeedValue_right);
+                pwm_value_right = (int)PID_Pos_Calc(&PID_Motor_R , rpm_left_motor , rpm_right_motor);
+				proc_cmd("backward" , pwm_value_left , pwm_value_right);
 		}
 
         encoder_left_counter = 0;   
