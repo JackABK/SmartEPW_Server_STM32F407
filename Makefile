@@ -31,6 +31,7 @@ INCLUDE+=-I$(CURDIR)/config
 INCLUDE+=-I$(CURDIR)/sdio
 INCLUDE+=-I$(CURDIR)/fat
 INCLUDE+=-I$(CURDIR)/Smart_EPW_lib
+INCLUDE+=-I$(CURDIR)/fio_lib
 
 
 BUILD_DIR = $(CURDIR)/build
@@ -43,7 +44,8 @@ vpath %.c $(CURDIR)/Libraries/STM32F4xx_StdPeriph_Driver/src \
 	  $(FREERTOS)/portable/MemMang $(FREERTOS)/portable/GCC/ARM_CM4F \
 	  $(CURDIR)/sdio \
 	  $(CURDIR)/fat \
-	  $(CURDIR)/Smart_EPW_lib
+	  $(CURDIR)/Smart_EPW_lib \
+	  $(CURDIR)/fio_lib 
 
 
 vpath %.s $(STARTUP)
@@ -59,6 +61,12 @@ SRC+=syscalls.c
 #sdio
 SRC+=stm32f4_discovery_sdio_sd.c
 SRC+=stm32f4_discovery_sdio_sd_LowLevel.c
+
+#fio
+SRC+=fio.c
+SRC+=filesystem.c
+SRC+=hash-djb2.c
+SRC+=osdebug.c
 
 #fat
 SRC+=fat_access.c
@@ -83,6 +91,9 @@ SRC+=unit_tests.c
 SRC+=linear_actuator.c
 SRC+=delay.c
 SRC+=ultrasound.c
+#SRC+=printf.c
+#SRC+=uprintf.c
+#SRC+=syscalls.c
 
 
 # FreeRTOS Source Files
@@ -116,15 +127,16 @@ CDEFS+=-DHSE_VALUE=8000000
 CDEFS+=-D__FPU_PRESENT=1
 CDEFS+=-D__FPU_USED=1
 CDEFS+=-DARM_MATH_CM4
+CDEFS+=-DTEST_PRINTF
 #CDEFS+=$(L298N_MODE)
 CDEFS+=$(EPW_DRIVER_MODE)
-CDEFS+=$(DEBUG_MODE)
+#CDEFS+=$(DEBUG_MODE)
 
 MCUFLAGS=-mcpu=cortex-m4 -mthumb -mfloat-abi=hard
 COMMONFLAGS=-O$(OPTLVL) $(DBG)  -Wall
 CFLAGS=$(COMMONFLAGS) $(MCUFLAGS) $(INCLUDE) $(CDEFS)
 LDLIBS=$(TOOLCHARN_ROOT)/arm-none-eabi/lib/armv7e-m/fpu/libc_s.a $(TOOLCHARN_ROOT)/arm-none-eabi/lib/armv7e-m/fpu/libm.a
-LDFLAGS=$(COMMONFLAGS) -fno-exceptions -ffunction-sections -fdata-sections -nostartfiles -Wl,--gc-sections,-T$(LINKER_SCRIPT) -v
+LDFLAGS=$(COMMONFLAGS) -fno-exceptions -ffunction-sections -fdata-sections -ffreestanding  -nostartfiles -Wl,--gc-sections,-T$(LINKER_SCRIPT) -v
 
 CC=$(TOOLCHAIN_PATH)/$(TOOLCHAIN_PREFIX)-gcc
 LD=$(TOOLCHAIN_PATH)/$(TOOLCHAIN_PREFIX)-gcc
@@ -145,6 +157,9 @@ all: $(OBJ)
 	$(OBJCOPY) -O binary $(BIN_DIR)/$(TARGET).elf $(BIN_DIR)/$(TARGET).bin
 
 .PHONY: clean
+
+
+
 
 flash:                                                                                                                                                          
 	st-flash write $(BIN_IMAGE) 0x8000000

@@ -29,7 +29,6 @@ extern "C"{
 
 extern void *memcpy(void *dest, const void *src, int n);
 extern void *memset(void *dest, int c, int n);
-extern int round(float number);
 extern char *strcat(char *dest, char *src);
 extern char *strchr(const char *s, int c);
 extern int strcmp(const char* s1, const char* s2);
@@ -37,7 +36,12 @@ extern char *strcpy(char *dest, const char *src);
 extern int strlen(char *str );
 extern int strncmp(const char *s1 , const char *s2 , int n);
 extern char *strncpy(char *dest, const char *src, int n);
+extern void reverse(char *str, int len);
+extern intToStr(int x, char str[], int d);
+extern void ftoa(float n, char *res, int afterpoint);
+extern int round(float number);
 
+//extern int sprintf(char *dest , const char *format , ...);
 #ifdef __cplusplus
 #if __cplusplus
 }

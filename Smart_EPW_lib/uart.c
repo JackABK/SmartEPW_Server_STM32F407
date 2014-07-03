@@ -6,13 +6,34 @@
 #include "stm32f4xx_gpio.h"
 #include "uart.h"
 
+/* Scheduler includes. */
+#include "task.h"
+#include "queue.h"
+#include "semphr.h"
+
 
 /*The USART3 potr and pin setting , it's fixed var. cannot change*/
-#define USART3_PORT                        GPIOB
+#define USART3_PORT                       GPIOB
 #define USART3_TX_PIN                     GPIO_Pin_10
 #define USART3_RX_PIN                     GPIO_Pin_11
 
-uint8_t Receive_String_Ready=0;
+int Receive_String_Ready=0;
+
+
+volatile xSemaphoreHandle serial_tx_wait_sem = NULL;
+volatile xQueueHandle serial_rx_queue = NULL ; 
+volatile xQueueHandle serial_str_queue = NULL ; 
+
+
+/* Queue structure used for passing messages. */
+typedef struct {
+    char str[100];
+} serial_str_msg;
+
+/* Queue structure used for passing characters. */
+typedef struct {
+    char ch;
+} serial_ch_msg;
 
 
 void init_USART3(uint32_t baurate){
@@ -145,4 +166,30 @@ void USART_puts(USART_TypeDef* USARTx, volatile char *s)
 				*s++;
 		}
 }
+
+void send_byte(char ch)
+{
+	/* Wait until the RS232 port can receive another byte (this semaphore
+	 * is "given" by the RS232 port interrupt when the buffer has room for
+	 * another byte.
+	 */
+	while (!xSemaphoreTake(serial_tx_wait_sem, portMAX_DELAY));
+
+	/* Send the byte and enable the transmit interrupt (it is disabled by
+	 * the interrupt).
+	 */
+	USART_SendData(USART2, ch);
+	USART_ITConfig(USART2, USART_IT_TXE, ENABLE);
+}
+char receive_byte()
+{
+    serial_ch_msg msg ; 
+
+    /* Wait for a byte to be queued by the receive interrupts handler. */
+    while (!xQueueReceive(serial_rx_queue, &msg, portMAX_DELAY));
+    return msg.ch ; 
+
+}
+
+
 

@@ -48,10 +48,8 @@ int media_write(unsigned long sector, unsigned char *buffer, unsigned long secto
     return 1;
 }
 
-void example_fat_fs()
+void fat_fs_init(FL_FILE *file)
 {
-    FL_FILE *file;
-
     // Initialise media
     media_init();
 
@@ -64,31 +62,30 @@ void example_fat_fs()
         printf("ERROR: Media attach failed\n");
         return; 
     }
-
     // List root directory
     fl_listdirectory("/");
 
     // Create File
-    file = fl_fopen("/file.bin", "w");
+    file = fl_fopen("/PID.txt", "w");
     if (file)
     {
         // Write some data
-        unsigned char data[] = { 1, 2, 3, 4 };
+        unsigned char data[] = { 1, 2, 3, 4, 5, 6 };
         if (fl_fwrite(data, 1, sizeof(data), file) != sizeof(data))
             printf("ERROR: Write file failed\n");
+       fl_fputs("Kp:\nKi:\nKd:\n",file);
     }
     else
         printf("ERROR: Create file failed\n");
 
     // Close file
     fl_fclose(file);
-
     // Delete File
    // if (fl_remove("/file.bin") < 0)
-    //    printf("ERROR: Delete file failed\n");
+    //printf("ERROR: Delete file failed\n");
 
     // List root directory
-    fl_listdirectory("/");
+    //fl_listdirectory("/");
 
-    fl_shutdown();
+    //fl_shutdown();
 }

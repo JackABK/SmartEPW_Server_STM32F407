@@ -43,7 +43,7 @@ extern void Car_State_Polling();
 extern void detachInterrupt(uint32_t EXTI_LineX);
 extern void EXTI0_IRQHandler();
 extern void EXTI1_IRQHandler();
-extern void init_car();
+extern void init_EPW_control();
 extern void init_encoder(void);
 extern void init_External_Interrupt(void);
 extern void init_motor(void);

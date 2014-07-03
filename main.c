@@ -26,6 +26,7 @@
 #include "stm32f4xx_gpio.h"
 #include "stm32f4xx_exti.h"
 #include "example.h"
+#include "example.h"
 #include "EPW_behavior.h"
 #include "uart.h"
 #include  "clib.h"
@@ -50,8 +51,10 @@
 DISTANCE_INFO_STRU distance_info_CH1;
 void tesing_task(void* p) { 
         int i = 0;
-		
+		int pwm_temp_left=127,  pwm_temp_right=127, pwm_flag_1=0, pwm_flag_2=0;
         struct limit_switch_info actuator_LS_state;
+        int test_cnt=0;
+        int test_actu=0;
 		/* initial two linear actuator*/
 		//set_linearActuator_A_cmd(CW, 255);
 		//vTaskDelay(10000);
@@ -126,14 +129,6 @@ void tesing_task(void* p) {
 #endif
 
 #if 0
-        if (SysTick_Config(SystemCoreClock / 1000))
-        { 
-            /* Capture error */ 
-            while (1);
-        }
-#endif
-
-#if 0
         /*check the delay function is correct.*/
         int cnt=0;
         while(1){
@@ -142,6 +137,66 @@ void tesing_task(void* p) {
             printf("%d %d %d %d\r\n",Get_CH1Distance(),Get_CH2Distance(),Get_CH3Distance(),Get_CH4Distance());
         }
 #endif    
+
+#if 0
+        while(1){
+            /*CW*/
+            pwm_flag_1 = 0;
+            pwm_temp_left = 146;
+            pwm_temp_right = 146;
+            while(pwm_flag_1<10){
+                TIM_SetCompare2(TIM4, pwm_temp_left);    
+                TIM_SetCompare4(TIM4, pwm_temp_right);
+                pwm_temp_left+=8;
+                pwm_temp_right+=8;
+                pwm_flag_1++;
+                vTaskDelay(1000);
+            }
+
+            /*CCW*/
+            pwm_flag_2 = 0;
+            pwm_temp_left = 108;
+            pwm_temp_right = 108;
+            while(pwm_flag_2<10){
+                TIM_SetCompare2(TIM4, pwm_temp_left);    
+                TIM_SetCompare4(TIM4, pwm_temp_right);
+                pwm_temp_left=pwm_temp_left - 8;
+                pwm_temp_right=pwm_temp_right - 8;
+                pwm_flag_2++;
+                vTaskDelay(1000);
+            }
+        }
+#endif 
+            #if 0
+        /*speed*/
+        PerformCommand(0,101, 5);
+
+        while(test_cnt<5){
+           /*dir*/
+           PerformCommand(0,100, 'f'); //f
+           vTaskDelay(1000);
+           PerformCommand(0,100, 'b'); //b
+           vTaskDelay(1000);
+           test_cnt++;
+        }
+        #endif
+        
+        //PerformCommand(0,100, 's'); //stop
+
+#if 0
+        /*linear actuator*/
+        while(test_actu<5){
+            /*testing linear actuator*/
+            set_linearActuator_A_cmd(1,255); //CW
+            vTaskDelay(1000);
+            set_linearActuator_A_cmd(2,255); //CCW
+            vTaskDelay(1000);
+            set_linearActuator_B_cmd(1,255); //CW
+            vTaskDelay(1000);
+            set_linearActuator_B_cmd(2,255); //CCW
+            test_actu++;
+        }
+#endif
 		vTaskDelete(NULL);
 }
 
@@ -206,17 +261,22 @@ void vApplicationStackOverflowHook(xTaskHandle pxTask, signed char *pcTaskName) 
 }
 
 int main(void) {
-
+         
 		uint8_t ret = pdFALSE;
         /*init.*/
 		NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
+        //delay(1500); /*waitng other device setup. */
+
 		init_USART3(9600);
 		init_LED();
 		ultra_sound_init();
-		init_car();
-        //init_linear_actuator();
+        
+		init_EPW_control();
+        
+        init_linear_actuator();
 
-        /*unit testing.*/
+    
+        /*unit testing before creating task.*/
         if(unit_tests_task()){ /*unit tests not pass. */
            GPIO_WriteBit(GPIOD,GPIO_Pin_14,SET); 
            return 0;
@@ -245,8 +305,3 @@ int main(void) {
 
         return 0;
 }
-
-
-
-
-

@@ -9,6 +9,12 @@
 #include "clib.h"
 #include "EPW_command.h"
 #include "PID.h"
+#include "linear_actuator.h"
+
+#include "fat_filelib.h"
+#include "stm32f4_discovery_sdio_sd.h"
+#include "example.h"
+
 
 
 #define CAR_POLLING_PERIOD  20//unit : ms
@@ -42,16 +48,19 @@ pid_struct PID_Motor_R;
 /*encoder_left  variable.  setting*/
 float rpm_left_motor = 0.0f;
 int encoder_left_counter;
+int encoder_left_counter_sum=0;
 /*encoder_right  variable  setting*/
 float rpm_right_motor = 0.0f;
 int encoder_right_counter;
-
-static float set_rpm=300.0f;
+int encoder_right_counter_sum=0;
+static float set_rpm=68.4f;
 
 /*pwm regulate of two motor */
-static int pwm_value_left=127; /*default pwm value*/
-static int pwm_value_right=127;
+static int pwm_value_left=120; /*default pwm value*/
+static int pwm_value_right=120;
+static int pwm_value_left_err=0, pwm_value_right_err=0;
 static int motor_speed_value=0; /*global speed value, range is 0~10.
+
 static char flag;
 
 /*pid alg premeter.*/
@@ -61,6 +70,10 @@ static float Kp,Ki,Kd;
 xTimerHandle carTimers;
 xTimerHandle PID_Timers;
 
+
+/*record the data to sdio if ready.*/
+static int record_data_to_sdio=0;
+FL_FILE *file;
 
 /*============================================================================*/
 /*============================================================================*
@@ -218,7 +231,7 @@ void init_External_Interrupt(void){
 }
 
 
-void init_car(){
+void init_EPW_control(){
         
 		init_motor();
         init_motor_CWCCW();
@@ -234,8 +247,22 @@ void init_car(){
 		xTimerStart( PID_Timers, 0 );
 
         /*Initialization the right motor of pid paremeter.*/
-        Kp=3.0f; Ki=2.0f; Kd=0.0f;
+        Kp=4.1f; Ki=3.1f; Kd=1.1f;
+        
+        InitPID(&PID_Motor_L , Kp ,Ki,Kd);
         InitPID(&PID_Motor_R , Kp ,Ki,Kd);
+
+        //accsess_sdio_setup();
+
+        /*sdio*/
+        //accsess_sdio_setup();
+
+        
+        /*For motor driver, the default idle state pwm value need to set 2.5V, it should be stop.*/
+        parse_EPW_motor_dir('s');    
+       
+
+        
 }
 
 
@@ -254,7 +281,7 @@ void init_car(){
  *  for example the CAR_POLLING_PERIOD=20, CAR_MOVING_PERIOD=10,
  *  then the car moving will be keep 200(10*20) ms time.
  */
-#define CAR_MOVING_PERIOD 250 
+ #define CAR_MOVING_PERIOD 250 
 #define CAR_REST_PERIOD  5
 void Car_State_Polling(){
 		static int count=0;
@@ -268,7 +295,7 @@ void Car_State_Polling(){
 				count=0;
 		}
 		else if(car_state==CAR_STATE_REST){
-				proc_cmd("stop" , 0 , 0);
+				proc_cmd("stop" , 125 , 125);
 
                 
 				count++;
@@ -317,7 +344,6 @@ void Car_State_Polling(){
 				}
 		}	
 		else if(car_state==CAR_STATE_MOVE_BACK){
-                
 				count++;
 				if(count>=CAR_MOVING_PERIOD){
 						count=0;
@@ -352,20 +378,21 @@ void Car_State_Polling(){
 void parse_EPW_motor_dir(unsigned char DIR_cmd)
 {
 		if(DIR_cmd == 'f'){
-				car_state = CAR_STATE_MOVE_FORWARD;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
-				pwm_value_left = motor_speed_convert_to_pwm(MOTOR_CW, motor_speed_value); 
+                motor_speed_convert_to_pwm(MOTOR_CW, motor_speed_value); 
+				pwm_value_left = 150;
 				pwm_value_right=pwm_value_left;
 				proc_cmd("forward" , pwm_value_left , pwm_value_right);
+                car_state = CAR_STATE_MOVE_FORWARD;
 		}
 		else if(DIR_cmd == 's'){
 				car_state = CAR_STATE_IDLE;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
 				/*even stop function is  always zero , but for security, I also set speedvalue to zero.*/
-				pwm_value_left = 127;
-				pwm_value_right = 127;
+				pwm_value_left = 125;
+				pwm_value_right = 125;
 				proc_cmd("stop" , pwm_value_left , pwm_value_right);
 
 		}
@@ -373,7 +400,8 @@ void parse_EPW_motor_dir(unsigned char DIR_cmd)
                 car_state = CAR_STATE_MOVE_BACK;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
-				pwm_value_left = motor_speed_convert_to_pwm(MOTOR_CCW, motor_speed_value); 
+                motor_speed_convert_to_pwm(MOTOR_CCW, motor_speed_value); 
+				pwm_value_left = 100;
 				pwm_value_right=pwm_value_left;
 				proc_cmd("backward" , pwm_value_left , pwm_value_right);
 		}
@@ -381,16 +409,16 @@ void parse_EPW_motor_dir(unsigned char DIR_cmd)
                 car_state = CAR_STATE_MOVE_LEFT;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
-				pwm_value_left = motor_speed_convert_to_pwm(MOTOR_CCW, motor_speed_value); 
-				pwm_value_right= motor_speed_convert_to_pwm(MOTOR_CW, motor_speed_value); 
+				pwm_value_left = 100; 
+				pwm_value_right= 150; 
 				proc_cmd("left" , pwm_value_left , pwm_value_right);
 		}
         else if(DIR_cmd == 'r'){
                 car_state = CAR_STATE_MOVE_RIGHT;
 				encoder_left_counter=0;
 				encoder_right_counter=0;
-				pwm_value_left = motor_speed_convert_to_pwm(MOTOR_CW, motor_speed_value); 
-				pwm_value_right=motor_speed_convert_to_pwm(MOTOR_CCW, motor_speed_value);
+				pwm_value_left = 150; 
+				pwm_value_right=100;
 				proc_cmd("right" , pwm_value_left , pwm_value_right);
 		}
 		else{
@@ -422,15 +450,14 @@ int motor_speed_convert_to_pwm(int motor_dir, int speed_value){
             pwm_value = 108 - speed_value*8;
             break;
     }
-    /*pwm value accept range is 0~255*/
-    if(pwm_value <=0) pwm_value = 0;
-    else if (pwm_value >=255) pwm_value = 255;
-    return pwm_value; ;
+    return pwm_value;
+    
 }
 
 
 void PerformCommand(unsigned char group,unsigned char control_id, unsigned char value)
 {
+   static int actuator_pwm_value=0;
    if(group == OUT_EPW_CMD){ /*0*/
 		switch ( control_id )
 		{
@@ -439,25 +466,31 @@ void PerformCommand(unsigned char group,unsigned char control_id, unsigned char 
 		        break;
 		    case EPW_MOTOR_PWM:
 		        motor_speed_value = value; /*0~10 scale*/
-                
 		        break;
 		    case EPW_ACTUATOR_A :
-		        set_linearActuator_A_cmd(value , 255); /*the actuator of pwm_value is fixed, value is dir flag.*/
+                //if(value==LINEAR_ACTU_CW) actuator_pwm_value=255;
+                //else if(value==LINEAR_ACTU_CCW) actuator_pwm_value=150;
+		        set_linearActuator_A_cmd(value , actuator_pwm_value); /*the actuator of pwm_value is fixed, value is dir flag.*/
 		        break;
-		    case EPW_ACTUATOR_B :                
-		        set_linearActuator_B_cmd(value , 255); /*the actuator of pwm_value is fixed. value is dir flag.*/
+		    case EPW_ACTUATOR_B :   
+                //if(value==LINEAR_ACTU_CW) actuator_pwm_value=255;
+                //else if(value==LINEAR_ACTU_CCW) actuator_pwm_value=150;
+		        set_linearActuator_B_cmd(value , actuator_pwm_value); /*the actuator of pwm_value is fixed. value is dir flag.*/
 		        break;
 		    case EPW_PID_ALG_KP :
-                 Kp = (float)value;
-		         InitPID(&PID_Motor_R , Kp/10.0f ,Ki,Kd);
+                 Kp = (float)value / 10.0f;                 
+		         InitPID(&PID_Motor_L , Kp, Ki,Kd);
+		         InitPID(&PID_Motor_R , Kp, Ki,Kd);
 		        break;
 		    case EPW_PID_ALG_KI :
-                 Ki = (float)value;
-		         InitPID(&PID_Motor_R , Kp, Ki/10.0f, Kd);
+                 Ki = (float)value / 10.0f;                 
+		         InitPID(&PID_Motor_L , Kp, Ki, Kd);
+		         InitPID(&PID_Motor_R , Kp, Ki, Kd);
 		        break;
             case EPW_PID_ALG_KD :
-                 Kd = (float)value;
-		         InitPID(&PID_Motor_R , Kp, Ki, Kd/10.0f);
+                 Kd = (float)value / 10.0f;                 
+		         InitPID(&PID_Motor_L, Kp, Ki, Kd);
+		         InitPID(&PID_Motor_R, Kp, Ki, Kd);
 		        break;
 		    default:
 		        ;
@@ -485,23 +518,61 @@ void PID_Algorithm_Polling(void)
         /*get the two motor parameter such as RPM, Rotations..*/
         getMotorData();
 
-        
+
+#if 0
 		/*restart motor calibration and re-count encoder count*/
 		if(car_state == CAR_STATE_MOVE_FORWARD){
-                /*calculate Position PID of two motor*/    
-                pwm_value_right = (int)PID_Pos_Calc(&PID_Motor_R , rpm_left_motor , rpm_right_motor);
+                /*the motor of encoder is not detect. so can't running PID alg.*/
+                if(encoder_left_counter==0&&encoder_right_counter==0){
+                        ;//proc_cmd("stop" , 127 , 127);
+                }else{/*detected encoder data, start to PID alg.*/
+                        /*calculate Position PID of two motor*/    
+                        pwm_value_left = (int)PID_Pos_Calc(&PID_Motor_L , set_rpm , rpm_left_motor);
+                        pwm_value_right = (int)PID_Pos_Calc(&PID_Motor_R , set_rpm , rpm_right_motor);
+                }
 				proc_cmd("forward" , pwm_value_left , pwm_value_right);
+
+                 if(encoder_left_counter_sum>=motor_speed_value*0.9*500 || encoder_right_counter_sum>=motor_speed_value*0.9*500){
+                    car_state = CAR_STATE_REST;
+                    encoder_left_counter_sum=0;
+                    encoder_right_counter_sum=0;
+                }
 		}
 		else if(car_state == CAR_STATE_MOVE_BACK) {
-                /*calculate Position PID of two motor*/    
-                pwm_value_right = (int)PID_Pos_Calc(&PID_Motor_R , rpm_left_motor , rpm_right_motor);
-				proc_cmd("backward" , pwm_value_left , pwm_value_right);
+                /*the motor of encoder is not detect. so can't running PID alg.*/
+                if(encoder_left_counter==0&&encoder_right_counter==0){
+                        ;//proc_cmd("stop" , 127 , 127);
+                }else{/*detected encoder data, start to PID alg.*/
+                        /*calculate Position PID of two motor*/    
+                        pwm_value_left_err =(int)PID_Pos_Calc(&PID_Motor_L , set_rpm , rpm_left_motor) - pwm_value_left;
+                        pwm_value_right_err =(int)PID_Pos_Calc(&PID_Motor_R , set_rpm , rpm_right_motor) - pwm_value_right;
+                        if(pwm_value_left_err<=0)pwm_value_left_err=-pwm_value_left_err;
+                        if(pwm_value_right_err<=0)pwm_value_right_err=-pwm_value_right_err;
+                }
+                /*for the backward of motor driver, decrease pwm vaue means more fast.*/
+				proc_cmd("backward" , pwm_value_left-pwm_value_left_err , pwm_value_right-pwm_value_right_err);
+
+                if(encoder_left_counter_sum>=motor_speed_value*0.9*500 || encoder_right_counter_sum>=motor_speed_value*0.9*500){
+                    car_state = CAR_STATE_REST;
+                    encoder_left_counter_sum=0;
+                    encoder_right_counter_sum=0;
+                }
 		}
+#endif
+#if 0
+        if(record_data_to_sdio == 50){
+                   access_data_to_sdio();
+                   record_data_to_sdio=0;
+               }else{
+                   record_data_to_sdio++;
+               }
+#endif
+
+               
+        //access_data_to_sdio();
 
         encoder_left_counter = 0;   
         encoder_right_counter = 0; 
-
-        
 
 		/*restart enable the external interrupt*/
 		attachInterrupt(EXTI_Line0); 
@@ -511,24 +582,102 @@ void PID_Algorithm_Polling(void)
 
 void getMotorData(void)
 {
-    
     /*for L298N test is used by 600 pulse/rev of the encoder.*/
 #ifdef L298N_MODE 
     rpm_left_motor=(float)encoder_left_counter * 60.0f /600.0f / 0.02f;
-    rpm_right_motor=(float)encoder_right_counter *  60.0f  /600.0f / 0.02f;    
+    rpm_right_motor=(float)encoder_right_counter * 60.0f  /600.0f / 0.02f;    
 #else
     /*for SmartEPW is used by 500 pulse/rev */
-    rpm_left_motor=(float)encoder_left_counter * 60.0f /500.0f / 0.02f;
-    rpm_right_motor=(float)encoder_right_counter *  60.0f  /500.0f / 0.02f;          
+    rpm_left_motor=(float)encoder_left_counter * (2.0f/3.0f)* 60.0f /500.0f / 0.02f;
+    rpm_right_motor=(float)encoder_right_counter * (2.0f/3.0f) * 60.0f /500.0f / 0.02f;          
     //get the speed of the two motors in deg/sec
     /***do someting***/ 
 #endif
 }
 
+void accsess_sdio_setup()
+{
+    // Initialise media
+    media_init();
+
+    // Initialise File IO Library
+    fl_init();
+
+    // Attach media access functions to library
+    if (fl_attach_media(media_read, media_write) != FAT_INIT_OK)
+    {
+        printf("ERROR: Media attach failed\n");
+        return; 
+    }
+    // List root directory
+    fl_listdirectory("/");
+   
+    // Close file
+    //fl_fclose(file);
+    
+    // Delete File
+    //if (fl_remove("/file.bin") < 0)
+    //printf("ERROR: Delete file failed\n");
+
+    // List root directory
+    //fl_listdirectory("/");
+
+    //fl_shutdown();
+}
+void access_data_to_sdio(){
+    static unsigned char index[1];
+    static char Kp_str[4];
+    static char Ki_str[4];
+    static char Kd_str[4];
+    static char encoder_left_cnt_str[4];
+    static char encoder_right_cnt_str[4];
+    static char rpm_left_str[4];
+    static char rpm_right_str[4];
+  
+    int2str((int)(Kp*10.0f), Kp_str);
+    int2str((int)(Ki*10.0f), Ki_str);
+    int2str((int)(Kd*10.0f), Kd_str);
+    int2str((int)(encoder_left_counter), encoder_left_cnt_str);
+    int2str((int)(encoder_right_counter), encoder_right_cnt_str);
+    int2str((int)(rpm_left_motor*10.0f), rpm_left_str);
+    int2str((int)(rpm_right_motor*10.0f), rpm_right_str);
+   
+     // Create File
+    file = fl_fopen("/PID.txt", "w");
+    if (file)
+    {
+        printf("success to open the file\n");
+    }
+    else
+        printf("ERROR: Create file failed\n");
+
+    fl_fseek(file,0,SEEK_END);
+    //fl_fread(index,1,sizeof(unsigned char),file);
+
+    fl_fputs(Kp_str,file);
+    fl_fputs("\t",file);
+    fl_fputs(Ki_str,file);
+    fl_fputs("\t",file);
+    fl_fputs(Kd_str,file);
+    fl_fputs("\t",file);
+    fl_fputs(encoder_left_cnt_str,file);
+    fl_fputs("\t",file);
+    fl_fputs(encoder_right_cnt_str,file);
+    fl_fputs("\t",file);
+    fl_fputs(rpm_left_str,file);
+    fl_fputs("\t",file);
+    fl_fputs(rpm_right_str,file);
+    fl_fputs("\t",file);
+    fl_fputs("\n",file);
+
+    // Close file
+    fl_fclose(file);
+}
 void EXTI0_IRQHandler(){
 
 		if(EXTI_GetITStatus(EXTI_Line0) != RESET)
 		{
+                encoder_left_counter_sum++; 
 				encoder_left_counter++ ;
 				EXTI_ClearITPendingBit(EXTI_Line0);
 		}
@@ -537,6 +686,8 @@ void EXTI0_IRQHandler(){
 void EXTI1_IRQHandler(){
 		if(EXTI_GetITStatus(EXTI_Line1) != RESET)
 		{
+            
+                encoder_right_counter_sum++; 
 				encoder_right_counter++ ;
 				EXTI_ClearITPendingBit(EXTI_Line1);
 		}
@@ -554,14 +705,3 @@ void attachInterrupt(uint32_t EXTI_LineX){
 		EXTI_InitStruct.EXTI_Line = EXTI_LineX;
 		EXTI_InitStruct.EXTI_LineCmd = ENABLE;
 }
-
-
-
-
-
-
-
-
-
-
-
