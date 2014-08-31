@@ -14,7 +14,8 @@
 #include "stm32f4xx.h"
 
 extern void receive_task(void *p);
-extern void send_out_task(void * p);
+extern void init_send_out_info(void);
+extern void send_out_task(void);
 
 /*determine yes or no reatch the MAX_STRLEN  */
 extern uint8_t Receive_String_Ready;
