@@ -3,12 +3,12 @@
   Copyright (C), 2001-2011, DCN Co., Ltd.
 
  ******************************************************************************
- File Name     : string.h
+ File Name     : clib.h
 Version       : Initial Draft
 Author        : JackABK
 Created       : 2014/1/31
 Last Modified :
-Description   : string.c header file
+Description   : clib.c header file
 Function List :
 History       :
 1.Date        : 2014/1/31
@@ -17,8 +17,8 @@ Modification: Created file
 
  ******************************************************************************/
 
-#ifndef __STRING_H__
-#define __STRING_H__
+#ifndef __CLIB_H__
+#define __CLIB_H__
 
 
 #ifdef __cplusplus
@@ -39,7 +39,7 @@ extern char *strncpy(char *dest, const char *src, int n);
 extern void reverse(char *str, int len);
 extern intToStr(int x, char str[], int d);
 extern void ftoa(float n, char *res, int afterpoint);
-extern int round(float number);
+extern int math_round(float number);
 
 //extern int sprintf(char *dest , const char *format , ...);
 #ifdef __cplusplus

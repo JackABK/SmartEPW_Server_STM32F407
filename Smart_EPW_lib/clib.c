@@ -350,11 +350,9 @@ void ftoa(float n, char *res, int afterpoint)
       intToStr((int)fpart, res + i + 1, afterpoint);
   }
 }
-#if 0
-int round(float number)
+int math_round(float number)
 {
 	return number > 0 ?  (number + 0.5f) : (number - 0.5f);
 }
-#endif
 
 
