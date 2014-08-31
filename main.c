@@ -272,6 +272,7 @@ int main(void) {
 		ultra_sound_init();
         
 		init_EPW_control();
+        init_send_out_info();
         
         init_linear_actuator();
 
@@ -291,7 +292,7 @@ int main(void) {
         printf("Task creating...........\r\n");
 		ret = xTaskCreate(tesing_task, "test task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
         ret &= xTaskCreate(receive_task, "receive command task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
-		ret &= xTaskCreate(send_out_task, "send out information task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
+		//ret &= xTaskCreate(send_out_task, "send out information task", 1024 /*configMINIMAL_STACK_SIZE*/, NULL, 1, NULL);
 		if (ret == pdTRUE) {
 				printf("All tasks are created.\r\n");
                 printf("System Started!\r\n");

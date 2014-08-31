@@ -12,6 +12,7 @@ L298N_MODE:= -DL298N_MODE
 EPW_DRIVER_MODE:= -DEPW_DRIVER_MODE
 DEBUG_MODE:= -DDEBUG_MODE
 OUTPUT_EPW_INFO:= -DOUTPUT_EPW_INFO
+ACCESS_SDIO:= -DACCESS_SDIO
 
 FREERTOS:=$(CURDIR)/FreeRTOS
 STARTUP:=$(CURDIR)/hardware
@@ -103,6 +104,7 @@ SRC+=queue.c
 SRC+=tasks.c
 SRC+=timers.c
 SRC+=heap_4.c
+SRC+=event_groups.c
 
 # Standard Peripheral Source Files
 SRC+=stm32f4xx_syscfg.c
@@ -130,6 +132,7 @@ CDEFS+=-DARM_MATH_CM4
 CDEFS+=-DTEST_PRINTF
 #CDEFS+=$(L298N_MODE)
 CDEFS+=$(EPW_DRIVER_MODE)
+#CDEFS+=$(ACCESS_SDIO)
 #CDEFS+=$(DEBUG_MODE)
 
 MCUFLAGS=-mcpu=cortex-m4 -mthumb -mfloat-abi=hard
