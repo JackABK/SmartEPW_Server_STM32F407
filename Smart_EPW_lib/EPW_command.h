@@ -20,7 +20,7 @@ Modification: Created file
 #ifndef __EPW_COMMAND_H__
 #define __EPW_COMMAND_H__
 
-
+#define MOTOR_IDLE_VOLTAGE 125
 
 extern inline void backward_cmd(uint32_t pwm_value_left , uint32_t pwm_value_right);
 extern inline void forward_cmd(uint32_t pwm_value_left , uint32_t pwm_value_right);
@@ -39,10 +39,10 @@ enum _EPW_Control_id {
     EPW_PID_ALG_KP,
     EPW_PID_ALG_KI,
     EPW_PID_ALG_KD,
-    EPW_PID_ALG,
+    EPW_SET_ENCODER_COUNT,
     EPW_GPIO,
     EPW_Servo_0,
-    EPW_Servo_1,
+    EPW_Servo_1
 };
 typedef enum _EPW_Control_id EPW_Control_id;
 
@@ -57,6 +57,16 @@ enum _EPW_Info_id {
     EPW_ACTUATOR_LIMIT_SWITCH_B,
     EPW_LEFT_RPM,
     EPW_RIGHT_RPM,
+    EPW_ENCODER_LEFT_COUNT,
+    EPW_ENCODER_RIGHT_COUNT,
+    EPW_PID_KP_LEFT,
+    EPW_PID_KI_LEFT,
+    EPW_PID_KD_LEFT,
+    EPW_PID_KP_RIGHT,
+    EPW_PID_KI_RIGHT,
+    EPW_PID_KD_RIGHT,
+    EPW_PWM_LEFT_VALUE,
+    EPW_PWM_RIGHT_VALUE
 };
 typedef enum _EPW_Info_id EPW_Info_id;
 
