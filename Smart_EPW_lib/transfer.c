@@ -79,7 +79,7 @@ void init_send_out_info(){
     send_out_info_Timers=xTimerCreate("send_out_info_Timers",( SEND_OUT_POLLING_PERIOD), pdTRUE, ( void * ) 1,  send_out_task);
     xTimerStart( send_out_info_Timers, 0 );
 }
-//#define SEND_OUT_PERIOD 500/*ms*/
+
 #define DECLARE_EPW_INFO(info_name, info_id, info_value) {.name=info_name, .id=info_id, .value=info_value}
 void send_out_task(void){
     static cmd_group EPW_cmd_group = OUT_EPW_CMD;
@@ -109,7 +109,6 @@ void send_out_task(void){
         DECLARE_EPW_INFO("EPW_PID_KD_RIGHT", EPW_PID_KD_RIGHT ,&KD_right),
         DECLARE_EPW_INFO("EPW_PID_KI_RIGHT", EPW_PWM_LEFT_VALUE ,&pwm_left_value_display),
         DECLARE_EPW_INFO("EPW_PID_KD_RIGHT", EPW_PWM_RIGHT_VALUE ,&pwm_right_value_display)
-
     };
         /*update the new value*/
         distance_cm[0]=(unsigned char)Get_CH1Distance();
@@ -129,20 +128,9 @@ void send_out_task(void){
         pwm_left_value_display=pwm_value_left_mcu;
         pwm_right_value_display=pwm_value_right_mcu;
 
-#ifdef DEBUG_MODE
-        printf("----------------------Debug mode-------------------------------\r\n");
-        for(i=0;i<sizeof(EPW_info_list)/sizeof(EPW_info);i++){
-            printf("EPW_issue name:%s   EPW_issue_id:%d EPW_issue_value:%d\r\n",EPW_info_list[i].name,EPW_info_list[i].id, *(EPW_info_list[i].value));
-        }
-        printf("---------------------End of debug mode-------------------------\r\n\r\n\r\n");
-        
-        printf("%d %d %d %d  encoder counter: %d %d\r\n",distance_cm[0],distance_cm[1],distance_cm[2],distance_cm[3],encoder_left_counter,encoder_right_counter);
-        
-#else 
         for(i=0;i<sizeof(EPW_info_list)/sizeof(EPW_info);i++){
             printf("cmd%c%c%cend",EPW_cmd_group,EPW_info_list[i].id, *(EPW_info_list[i].value));
         }
         fflush(0);/*force clear buffer and send out the other device. */
-#endif
 }
 
