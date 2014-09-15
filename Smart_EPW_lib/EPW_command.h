@@ -46,7 +46,6 @@ enum _EPW_Control_id {
 };
 typedef enum _EPW_Control_id EPW_Control_id;
 
-
 /* EPW info issue */
 enum _EPW_Info_id {
     EPW_ULTRASONIC_0 =200,        
@@ -69,7 +68,6 @@ enum _EPW_Info_id {
     EPW_PWM_RIGHT_VALUE
 };
 typedef enum _EPW_Info_id EPW_Info_id;
-
 
 /* commands which can be send to the output plugin */
 typedef enum _cmd_group cmd_group;
