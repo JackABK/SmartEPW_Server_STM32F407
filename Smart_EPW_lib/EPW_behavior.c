@@ -53,7 +53,6 @@ int encoder_left_counter_sum=0;
 float rpm_right_motor = 0.0f;
 int encoder_right_counter;
 int encoder_right_counter_sum=0;
-static float set_rpm=68.4f;
 static float set_encoder_count=8.0f;
 
 
@@ -70,11 +69,7 @@ int pwm_value_left_mcu=0, pwm_value_right_mcu=0;
 
 /*for the pwm compensate value by pid alg.*/
 static int set_fixed_distance_encoder_value=107;
-static int pwm_left_compensate_value_forward=35;
-static int pwm_right_compensate_value_forward=40;
 
-int pwm_left_compensate_value_back=20;
-int pwm_right_compensate_value_back=23;
 
 
 
@@ -89,7 +84,7 @@ xTimerHandle PID_Timers;
 
 
 /*check whether complete the goals of specified distance.*/
-static int complete_specified_dist_goals=0;
+static int arrived_to_specify_goal=0;
 FL_FILE *file;
 
 /*============================================================================*/
@@ -320,7 +315,6 @@ void Car_State_Polling(){
 				}
 		}
 		else if(car_state==CAR_STATE_MOVE_FORWARD){
-
 #if 0       
                 if(distance[0]==0 || distance[1]==0){
                     car_state=CAR_STATE_IDLE;
@@ -401,8 +395,6 @@ void parse_EPW_motor_dir(unsigned char DIR_cmd)
                 //specified_distance_convert_to_setRPM(MOTOR_CW, global_specified_distance_value); 
 				pwm_value_left_mcu = 150;
 				pwm_value_right_mcu=pwm_value_left_mcu;
-                //PID_Motor_L.Kp = 2.1f; PID_Motor_L.Ki = 0.8f; PID_Motor_L.Kd=0.0f;
-                //PID_Motor_R.Kp = 2.0f; PID_Motor_R.Ki = 0.8f; PID_Motor_R.Kd=0.0f;
 				proc_cmd("forward" , pwm_value_left_mcu , pwm_value_right_mcu);
                 
 		}
@@ -425,16 +417,10 @@ void parse_EPW_motor_dir(unsigned char DIR_cmd)
                 encoder_left_counter_sum=0;
                 encoder_right_counter_sum=0;
                 //specified_distance_convert_to_setRPM(MOTOR_CCW, global_specified_distance_value); 
-				pwm_value_left = 110;
-				pwm_value_right=pwm_value_left;
-                
+				
                 pwm_value_left_mcu=110;
                 pwm_value_right_mcu=pwm_value_left_mcu;
 
-
-                /*for the testing of fixed pid par.*/
-                //PID_Motor_L.Kp = 2.1f; PID_Motor_L.Ki = 0.8f; PID_Motor_L.Kd=0.0f;
-                //PID_Motor_R.Kp = 2.1f; PID_Motor_R.Ki = 0.8f; PID_Motor_R.Kd=0.0f;
 				proc_cmd("backward" , pwm_value_left_mcu , pwm_value_right_mcu);
 		}
         else if(DIR_cmd == 'l'){
@@ -481,15 +467,6 @@ void parse_EPW_motor_dir(unsigned char DIR_cmd)
  **============================================================================*/
 /*============================================================================*/
 void specified_distance_convert_to_setRPM(int motor_dir, int specified_distance_value){
-#if 0
-    /* 100 * 60 * 0.006 *specified_distance_value /2 */
-    set_rpm = 18 * specified_distance_value;
-#endif 
-    /*RPM for wheelchair --> (60/2)*0.6f*/
-    //if(car_state == CAR_STATE_MOVE_FORWARD) set_rpm = 10.0f; //fixed the speed of per second.
-    //else if(car_state == CAR_STATE_MOVE_BACK) set_rpm = 9.0f; //back should be slow more then forward.
-
-
     if(car_state == CAR_STATE_MOVE_FORWARD) set_encoder_count = 5.0f; //fixed the speed of per second.
     else if(car_state == CAR_STATE_MOVE_BACK) set_encoder_count = 5.0f; //back should be slow more then forward
 }
@@ -506,13 +483,9 @@ void PerformCommand(unsigned char group,unsigned char control_id, unsigned char 
 		        global_specified_distance_value = value; /*0~10 scale*/
 		        break;
 		    case EPW_ACTUATOR_A :
-                //if(value==LINEAR_ACTU_CW) actuator_pwm_value=255;
-                //else if(value==LINEAR_ACTU_CCW) actuator_pwm_value=150;
 		        set_linearActuator_A_cmd(value , actuator_pwm_value); /*the actuator of pwm_value is fixed, value is dir flag.*/
 		        break;
 		    case EPW_ACTUATOR_B :   
-                //if(value==LINEAR_ACTU_CW) actuator_pwm_value=255;
-                //else if(value==LINEAR_ACTU_CCW) actuator_pwm_value=150;
 		        set_linearActuator_B_cmd(value , actuator_pwm_value); /*the actuator of pwm_value is fixed. value is dir flag.*/
 		        break;
 		    case EPW_PID_ALG_KP :
@@ -596,7 +569,7 @@ void PID_Algorithm_Polling(void)
                 if(encoder_left_counter_sum>= math_round((float)global_specified_distance_value*0.86f*500.0f) &&  encoder_right_counter_sum>=math_round((float)global_specified_distance_value*0.86f*500.0f)){
                     proc_cmd("stop" , MOTOR_IDLE_VOLTAGE , MOTOR_IDLE_VOLTAGE);
                     car_state = CAR_STATE_IDLE;
-                    complete_specified_dist_goals=1;
+                    arrived_to_specify_goal=1;
                     encoder_left_counter_sum=0;
                     encoder_right_counter_sum=0; 
 #ifdef ACCESS_SDIO         
@@ -621,32 +594,17 @@ void PID_Algorithm_Polling(void)
                         pwm_value_left_mcu = pwm_value_left_pid;
                         pwm_value_right_mcu = pwm_value_right_pid;
 
-
                         if(pwm_value_left_mcu <=127){
                             pwm_value_left_mcu = 127;
                         }else if (pwm_value_left_mcu >=190){
-                        #if 0
-                            if(encoder_left_counter_sum<=set_fixed_distance_encoder_value)
-                                pwm_value_left_mcu=190-pwm_left_compensate_value_forward;
-                            else
-                                pwm_value_left_mcu = 190;
-                        #endif
                             pwm_value_left_mcu = 190;
                         }
-                        
                         if(pwm_value_right_mcu <=127){ 
                             pwm_value_right_mcu = 127;
                         }else if(pwm_value_right_mcu >=190){
-                        #if 0
-                            if(encoder_right_counter_sum<=set_fixed_distance_encoder_value)
-                                pwm_value_right_mcu=190-pwm_right_compensate_value_forward;
-                            else
-                                pwm_value_right_mcu = 190;
-                        #endif
-                        pwm_value_right_mcu = 190;
+                            pwm_value_right_mcu = 190;
                             
                         }
-                        
                         proc_cmd("forward" , pwm_value_left_mcu , pwm_value_right_mcu);
                 }
 		}
@@ -654,7 +612,7 @@ void PID_Algorithm_Polling(void)
                 if(encoder_left_counter_sum>= math_round((float)global_specified_distance_value*0.86f*500.0f) && encoder_right_counter_sum>=math_round((float)global_specified_distance_value*0.86f*500.0f)){
                     proc_cmd("stop" , MOTOR_IDLE_VOLTAGE , MOTOR_IDLE_VOLTAGE);
                     car_state = CAR_STATE_IDLE;
-                    complete_specified_dist_goals=1;
+                    arrived_to_specify_goal=1;
                     encoder_left_counter_sum=0;
                     encoder_right_counter_sum=0; 
 #ifdef ACCESS_SDIO         
@@ -686,29 +644,15 @@ void PID_Algorithm_Polling(void)
                      * the motor driver of pwm value accept CCW is 50~127 for security
                      **/
                     if(pwm_value_left_mcu <=90){
-                        #if 0
-                        if(encoder_left_counter_sum<=set_fixed_distance_encoder_value)
-                            pwm_value_left_mcu=90+pwm_left_compensate_value_back;
-                        else
-                            pwm_value_left_mcu = 90;
-                        #endif
                         pwm_value_left_mcu = 90;
                     }else if (pwm_value_left_mcu >=127){
                         pwm_value_left_mcu = 127;
                     }
-
                     if(pwm_value_right_mcu <=90){
-                        #if 0
-                        if(encoder_right_counter_sum<=set_fixed_distance_encoder_value)
-                            pwm_value_right_mcu=90+pwm_right_compensate_value_back;
-                        else
-                            pwm_value_right_mcu = 90;
-                        #endif
                         pwm_value_right_mcu = 90;
                     }else if(pwm_value_right_mcu >=127){
                         pwm_value_right_mcu = 127;
                     }
-                    
                     proc_cmd("backward" , pwm_value_left_mcu , pwm_value_right_mcu);
                 }
 		}
@@ -723,23 +667,12 @@ void PID_Algorithm_Polling(void)
 
 void getMotorData(void)
 {
-    /*for L298N test is used by 600 pulse/rev of the encoder.*/
-#ifdef L298N_MODE 
-    rpm_left_motor=(float)encoder_left_counter * 60.0f /600.0f / 0.02f;
-    rpm_right_motor=(float)encoder_right_counter * 60.0f  /600.0f / 0.02f;    
-#else
     /*for SmartEPW is used by 500 pulse/rev,  =>  encoder_left_counter * (2.0f/3.0f)* 60.0f /500.0f / 0.02f*/
     rpm_left_motor=(float)encoder_left_counter * 4.0f;
     rpm_right_motor=(float)encoder_right_counter * 4.0f;    
 
-
-    /*100msec version.    (float)encoder_left_counter *(2.0f/3.0f) * 60.0f /500.0f / 0.1f*/
-    //rpm_left_motor=(float)encoder_left_counter * 0.8f;
-    //rpm_right_motor=(float)encoder_right_counter * 0.8f; 
-    
     //get the speed of the two motors in deg/sec
     /***do someting***/ 
-#endif
 }
 
 void accsess_sdio_setup()
@@ -820,7 +753,6 @@ void access_data_to_sdio(void){
     int2str((int)(encoder_right_counter), encoder_right_cnt_str);
     int2str((int)(rpm_left_motor), rpm_left_str);
     int2str((int)(rpm_right_motor), rpm_right_str);
-    //int2str((int)(set_rpm), set_rpm_str);
     int2str((int)(set_encoder_count), set_encoder_count_str);
     
      // Create File
@@ -867,9 +799,9 @@ void access_data_to_sdio(void){
     fl_fputs("\n",file);
 
     /*split the period of recording.*/
-    if(complete_specified_dist_goals){
+    if(arrived_to_specify_goal){
         fl_fputs("\n",file);
-        complete_specified_dist_goals=0;
+        arrived_to_specify_goal=0;
     }
     
     // Close file
