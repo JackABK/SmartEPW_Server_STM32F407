@@ -178,8 +178,8 @@ void send_byte(char ch)
 	/* Send the byte and enable the transmit interrupt (it is disabled by
 	 * the interrupt).
 	 */
-	USART_SendData(USART2, ch);
-	USART_ITConfig(USART2, USART_IT_TXE, ENABLE);
+	USART_SendData(USART3, ch);
+	USART_ITConfig(USART3, USART_IT_TXE, ENABLE);
 }
 char receive_byte()
 {
