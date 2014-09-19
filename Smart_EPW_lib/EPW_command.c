@@ -37,56 +37,19 @@ static cmd_list  motor_cmds_table[] = {
  * 
  */
 inline void forward_cmd(uint32_t pwm_value_left , uint32_t pwm_value_right){  
-#ifdef L298N_MODE
-        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_IN1_PIN,Bit_SET);  /* 1 */       
-		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_IN2_PIN,Bit_RESET);  /* 0 */
-        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN3_PIN,Bit_SET);  /* 1 */       
-		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN4_PIN,Bit_RESET);  /* 0 */
         TIM_SetCompare2(TIM4, pwm_value_left);    
 		TIM_SetCompare4(TIM4, pwm_value_right);
-#else ifdef EPW_DRIVER_MODE
-       
-        TIM_SetCompare2(TIM4, pwm_value_left);    
-		TIM_SetCompare4(TIM4, pwm_value_right);
-#endif
 }
 inline void stop_cmd(uint32_t pwm_value_left , uint32_t pwm_value_right){
-#ifdef L298N_MODE
-        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_IN1_PIN,Bit_RESET);  /* 0 */       
-		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_IN2_PIN,Bit_RESET);  /* 0 */
-        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN3_PIN,Bit_RESET);  /* 0 */       
-		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN4_PIN,Bit_RESET);  /* 0 */
-        TIM_SetCompare2(TIM4, 0);    
-		TIM_SetCompare4(TIM4, 0);
-#else ifdef EPW_DRIVER_MODE
 		/*the idle mode of motor driver is between 2.18~2.81 Volt, so set to 2.5 Volt*/
 		TIM_SetCompare2(TIM4, MOTOR_IDLE_VOLTAGE);    
 		TIM_SetCompare4(TIM4, MOTOR_IDLE_VOLTAGE);
-#endif
 }
 inline void backward_cmd(uint32_t pwm_value_left , uint32_t pwm_value_right){
-#ifdef L298N_MODE
-        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_IN1_PIN,Bit_RESET);  /* 0 */       
-		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_IN2_PIN,Bit_SET);     /* 1 */
-        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN3_PIN,Bit_RESET);  /* 0 */       
-		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN4_PIN,Bit_SET);    /* 1 */
         TIM_SetCompare2(TIM4, pwm_value_left);    
 		TIM_SetCompare4(TIM4, pwm_value_right);
-#else ifdef EPW_DRIVER_MODE
-        
-        TIM_SetCompare2(TIM4, pwm_value_left);    
-		TIM_SetCompare4(TIM4, pwm_value_right);
-#endif
 }
 inline void left_cmd(uint32_t pwm_value_left , uint32_t pwm_value_right){
-#ifdef L298N_MODE
-        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_IN1_PIN,Bit_RESET);  /* 0 */       
-		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_IN2_PIN,Bit_SET);     /* 1 */
-        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN3_PIN,Bit_SET);  /* 1 */       
-		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN4_PIN,Bit_RESET);    /* 0 */
-        TIM_SetCompare2(TIM4, pwm_value_left);    
-		TIM_SetCompare4(TIM4, pwm_value_right);
-#else ifdef EPW_DRIVER_MODE
         /** 
          * the motor driver of pwm value accept CW is 127~200 for security
          * the motor driver of pwm value accept CCW is 50~127 for security
@@ -94,18 +57,9 @@ inline void left_cmd(uint32_t pwm_value_left , uint32_t pwm_value_right){
         //if(pwm_value_left <=50) pwm_value_left = 50; else if (pwm_value_left >=127) pwm_value_left = 127;
         //if(pwm_value_right <=127) pwm_value_right = 127; else if (pwm_value_right >=200) pwm_value_right = 200;
         TIM_SetCompare2(TIM4, pwm_value_left);
-		TIM_SetCompare4(TIM4, pwm_value_right);
-#endif   
+		TIM_SetCompare4(TIM4, pwm_value_right);  
 }
 inline void right_cmd(uint32_t pwm_value_left , uint32_t pwm_value_right){
-#ifdef L298N_MODE
-        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_IN1_PIN,Bit_SET);       /* 1 */       
-		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_LEFT_IN2_PIN,Bit_RESET);     /* 0 */
-        GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN3_PIN,Bit_RESET);    /* 0 */       
-		GPIO_WriteBit(MOTOR_CWCCW_PORT,MOTOR_RIGHT_IN4_PIN,Bit_SET);      /* 1 */
-        TIM_SetCompare2(TIM4, pwm_value_left);    
-		TIM_SetCompare4(TIM4, pwm_value_right);
-#else ifdef EPW_DRIVER_MODE
         /** 
          * the motor driver of pwm value accept CW is 127~200 for security
          * the motor driver of pwm value accept CCW is 50~127 for security
@@ -115,10 +69,8 @@ inline void right_cmd(uint32_t pwm_value_left , uint32_t pwm_value_right){
 
         TIM_SetCompare2(TIM4, pwm_value_left);
         TIM_SetCompare4(TIM4, pwm_value_right);
-#endif
 }
 /* ======================End of the Control Function===================== */
-
 
 void proc_cmd(char *cmd , uint32_t pwm_value_left , uint32_t pwm_value_right )
 {
